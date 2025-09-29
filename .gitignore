@@ -58,3 +58,4 @@ frontend/*.sln
 frontend/*.sw?
 
 .idea/
+data/
