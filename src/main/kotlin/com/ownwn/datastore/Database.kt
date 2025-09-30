@@ -1,60 +1,32 @@
 package com.ownwn.datastore
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
 import java.io.File
-import java.nio.file.Files
 
 object Database {
-    val mapper = jacksonObjectMapper()
     val dataRoot = File("data/")
-    val dbLocation = dataRoot.resolve("data.json")
 
     init {
         if (!dataRoot.exists()) dataRoot.mkdir()
-        dbLocation.createNewFile()
-
-        val entry = Entry("first entry", System.currentTimeMillis()-1L)
-        saveEntry(entry)
-
-        val data = Data(mutableListOf(entry))
-        saveData(data)
-
-    }
-
-    private fun getLogFile(): File {
-        val file = dataRoot.resolve("logs/").resolve(System.currentTimeMillis().toString() + ".json")
-        file.parentFile.mkdirs()
-        file.createNewFile()
-        return file
-    }
-
-    private fun saveData(data: Data) {
-        mapper.writeValue(dbLocation, data)
-    }
-
-    private fun saveEntry(entry: Entry) {
-        mapper.writeValue(getLogFile(), entry)
+        if (dataRoot.listFiles().orEmpty().isEmpty()) {
+            addEntry("test")
+        }
     }
 
     fun addEntry(content: String) {
-        val entry = Entry(content, System.currentTimeMillis())
-        val data = getData()
-        data.list.add(entry);
-        saveEntry(entry)
-        saveData(data)
+        val file = dataRoot.resolve(System.currentTimeMillis().toString())
+        if (file.exists()) throw RuntimeException("File $file already exists!")
+        file.writeText(content)
+
     }
 
     fun getEntries(): List<Entry> {
-        return getData().list
-
+       return getFiles().map { f -> Entry(f.readText(), f.name.toLong()) }
     }
 
-    private fun getData(): Data {
-        return mapper.readValue<Data>(Files.readString(dbLocation.toPath()))
+    private fun getFiles(): List<File> {
+        return dataRoot.listFiles()?.map { f -> f } ?: throw RuntimeException("Error listing files!")
 
     }
 }
 
-data class Data(val list: MutableList<Entry>)
-data class Entry(val content: String, val created_at: Long)
+data class Entry(val content: String, val createdAt: Long)
