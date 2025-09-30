@@ -1,6 +1,5 @@
 import {useEffect, useState} from "react";
 import styles from "./home.module.css";
-import {DOMAIN} from "../App.tsx";
 
 type Entry = { content: string, created_at: number }
 
@@ -64,7 +63,7 @@ export function Home() {
 
 
     function fetchItems() {
-        fetch(DOMAIN + "entries")
+        fetch("entries")
             .then(res => res.json())
             .then(data => data.sort((a: Entry, b: Entry) => b.created_at - a.created_at))
             .then(data => setItems(data))
@@ -83,7 +82,7 @@ export function Home() {
         }
 
 
-        const postResponse = await fetch(DOMAIN + "submit", {
+        const postResponse = await fetch("submit", {
             method: "POST",
             body: text
         });
