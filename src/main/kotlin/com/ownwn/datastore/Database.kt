@@ -24,39 +24,48 @@ object Database {
         val fileName = "FILE${System.currentTimeMillis()}--BORDER--${file.originalFilename}"
         val filePath = dataRoot.resolve(fileName)
         if (filePath.exists()) throw RuntimeException("File $filePath already exists!")
-
-        val content = file.inputStream.reader().use { it.readText() }
-        filePath.writeText(content)
-
+        file.inputStream.use {
+            filePath.outputStream().use { outputStream -> it.copyTo(outputStream) }
+        }
     }
 
     fun getEntries(): List<Entry> {
-       return getFiles().map { f ->
-           if (!f.name.startsWith("TEXT") && !f.name.startsWith("FILE")) {
-               return@map Entry("Unknown", true, "", 999)
-           }
-           val plainText = f.name.startsWith("TEXT")
-           if (plainText) {
-               return@map Entry("Plaintext", true, f.readText(), f.name.substring(4).toLong())
-           }
-
-           val parts = f.name.split("--BORDER--")
-           if (parts.size != 2) {
-               System.err.println("Error parsing file name")
-               return@map Entry("Error", true, "", 999)
-           }
-
-           val time = parts[0].substring(4).toLong()
-           val fileName = parts[1]
-
-           Entry(fileName, false, f.readText(), time)
+       return getFiles().map {
+           Entry.createEntry(it) ?: Entry("Error", true, "", 999)
        }
     }
 
-    private fun getFiles(): List<File> {
-        return dataRoot.listFiles()?.toList() ?: throw RuntimeException("Error listing files!")
+    fun getFileAndName(time: Long): Pair<File, String>? {
+        return dataRoot.listFiles()?.firstOrNull {
+            Entry.createEntry(it)?.createdAt == time
+        }?.let { Pair(it, it.name.split("--BORDER--")[1]) }
+    }
 
+    private fun getFiles(): List<File> {
+        return dataRoot.listFiles()?.toList() ?: listOf()
     }
 }
 
-data class Entry(val name: String, val plainText: Boolean, val content: String, val createdAt: Long)
+data class Entry(val name: String, val plainText: Boolean, val content: String, val createdAt: Long) {
+    companion object {
+        fun createEntry(f: File): Entry? {
+            if (!f.name.startsWith("TEXT") && !f.name.startsWith("FILE")) {
+                return null
+            }
+            val plainText = f.name.startsWith("TEXT")
+            if (plainText) {
+                return Entry("Plaintext", true, f.readText(), f.name.substring(4).toLong())
+            }
+
+            val parts = f.name.split("--BORDER--")
+            if (parts.size != 2) {
+                return null
+            }
+
+            val time = parts[0].substring(4).toLong()
+            val fileName = parts[1]
+
+            return Entry(fileName, false, "FILE", time)
+        }
+    }
+}
