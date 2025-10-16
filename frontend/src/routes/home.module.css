@@ -72,3 +72,15 @@ button {
 details[open] > summary {
     display: none;
 }
+
+
+
+input[type='file'] {
+    color: transparent;
+}
+
+
+.fileInput {
+    font-size: 20px;
+    cursor: pointer;
+}
