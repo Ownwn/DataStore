@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<body>
+<h1>login!</h1>
+
+<label>
+    <input type="password" placeholder="password" id="passbox">
+    <button type="button" onclick="updateCookie()">Submit</button>
+</label>
+</body>
+</html>
+
+<script>
+    /** Yes, ik this is NOT how auth is done. it works as a jank fix here tho*/
+    function updateCookie() {
+        const pass = document.getElementById("passbox").value
+
+        if (!pass) return
+
+        const date = new Date()
+        date.setTime(date.getTime() + (30*24*60*60*1000))
+
+        document.cookie = "COOKIE_VALUE" + "=" + (pass || "")  + "; expires=" + date.toUTCString() + "; path=/";
+    }
+
+</script>
