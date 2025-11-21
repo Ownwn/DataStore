@@ -75,11 +75,6 @@ details[open] > summary {
 
 
 
-input[type='file'] {
-    color: transparent;
-}
-
-
 .fileInput {
     font-size: 20px;
     cursor: pointer;
