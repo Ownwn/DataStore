@@ -10,6 +10,8 @@ import jakarta.servlet.http.HttpServletResponse
 import org.springframework.stereotype.Component
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.RequestMapping
+import java.net.URLDecoder
+import java.nio.charset.StandardCharsets
 import java.util.*
 
 const val loginPath: String = "/login"
@@ -40,7 +42,8 @@ class Auth : Filter {
             return
         }
 
-        val authenticated = Arrays.stream(cookies).anyMatch { c: Cookie? -> cookieName == c?.name && cookieValue == c.value }
+        val authenticated = Arrays.stream(cookies).anyMatch { c: Cookie? -> cookieName == c?.name && cookieValue == URLDecoder.decode(c.value,
+            StandardCharsets.UTF_8) }
         if (!authenticated) {
             res.sendRedirect(loginPath)
             return
