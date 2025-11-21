@@ -34,7 +34,11 @@ class Auth : Filter {
             return
         }
 
-        val cookieValue = DataStoreApplication.getEnv(cookieName) ?: return res.sendError(500)
+        val cookieValue = DataStoreApplication.getEnv(cookieName) ?: run {
+            System.err.println("Missing cookie value!")
+            res.sendRedirect(loginPath)
+            return
+        }
 
         val authenticated = Arrays.stream(cookies).anyMatch { c: Cookie? -> cookieName == c?.name && cookieValue == c.value }
         if (!authenticated) {

@@ -39,7 +39,8 @@ private object Env2 {
             if (envs.contains(pair[0])) {
                 throw RuntimeException("Duplicate key ${pair[0]}")
             }
-            envs[pair[0]] = pair[1]
+            val hasQuotes: Boolean = pair[1].startsWith("\"") && pair[1].endsWith("\"")
+            envs[pair[0]] = if (hasQuotes) pair[1].substring(1, pair[1].length-1) else pair[1]
         }
     }
 }
