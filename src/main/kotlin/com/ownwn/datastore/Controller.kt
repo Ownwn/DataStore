@@ -1,13 +1,8 @@
 package com.ownwn.datastore
 
-import org.springframework.core.io.InputStreamResource
-import org.springframework.core.io.Resource
-import org.springframework.http.HttpHeaders
-import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import org.springframework.web.multipart.MultipartFile
-import java.io.FileInputStream
+import java.util.Base64
 
 
 @RestController
@@ -21,7 +16,6 @@ class Controller {
     @PostMapping("/submit")
     fun submit(@RequestBody items: List<Map<String?, String?>?>?): ResponseEntity<String> {
         if (items == null) return ResponseEntity.badRequest().body("null items")
-        println(items)
         for (item in items) {
             if (item.isNullOrEmpty()) continue
             val type: String = item["type"] ?: return ResponseEntity.badRequest().body("missing type")
@@ -40,14 +34,16 @@ class Controller {
         return ResponseEntity.ok("ok!")
     }
 
-    @GetMapping("/downloadfile/{created}")
-    fun downloadFile(@PathVariable created: String?): ResponseEntity<Resource> {
-        val fileNamePair = created?.toLongOrNull()?.let { Database.getFileAndName(it) } ?: return ResponseEntity.notFound().build()
+    @GetMapping("/downloadfile")
+    fun downloadFile(@RequestParam("created") created: String?, @RequestParam("filename") fileNameBase64: String?): ResponseEntity<String> {
+        println("heyy")
+        if (created?.toLongOrNull() == null || fileNameBase64 == null) {
+            return ResponseEntity.badRequest().build()
+        }
 
-        return ResponseEntity.ok()
-            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileNamePair.second + "\"")
-            .contentType(MediaType.APPLICATION_OCTET_STREAM)
-            .contentLength(fileNamePair.first.length())
-            .body(InputStreamResource(FileInputStream(fileNamePair.first)));
+        val fileBytes = Database.getFileBytes(created.toLong(), Base64.getDecoder().decode(fileNameBase64).decodeToString())
+            ?: return ResponseEntity.notFound().build()
+
+        return ResponseEntity.ok(fileBytes.trim())
     }
 }

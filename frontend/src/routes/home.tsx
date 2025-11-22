@@ -69,7 +69,30 @@ export function Home() {
 
                 </>)
         }
-        return <a href={"downloadfile/" + String(entry.createdAt)} download={entry.name}>{entry.name}</a>
+        return <button type="button" onClick={() => {
+            const created = String(entry.createdAt)
+            const fileNameBase64 = btoa(entry.name)
+
+            fetch("downloadfile" + "?created=" + created + "&filename=" + fileNameBase64)
+                .then(response => response.text())
+                .then(async (text) => {
+                    const key = await getEncryptionKey(encryptionKey)
+
+                    const buffer = base64ToArrayBuffer(text)
+
+                    const blob = new Blob([await decryptData(buffer, key)], { type: "application/octet-stream" });
+                    const url = URL.createObjectURL(blob)
+                    const a = document.createElement("a")
+                    a.href = url
+                    a.download = entry.name
+                    a.click()
+                })
+                .catch(e => {
+                    console.error(e)
+                    setError(e)
+            })
+
+        }}>{entry.name}</button>
 
     }
 
@@ -92,7 +115,7 @@ export function Home() {
         try {
             const res = await fetch("entries");
             if (!res.ok) {
-                console.log("Error getting entries", res.statusText)
+                console.log("Error getting entries", res.status)
                 return
             }
             const entries = await res.json();
@@ -112,8 +135,8 @@ export function Home() {
 
                     try {
                         const encryptedBuffer = base64ToArrayBuffer(entry.content);
-                        const decryptedContent = await decryptData(encryptedBuffer, key);
-                        return { ...entry, content: decryptedContent };
+                        const decryptedBuffer = await decryptData(encryptedBuffer, key);
+                        return { ...entry, content: new TextDecoder().decode(decryptedBuffer) };
                     } catch (err) {
                         console.error("Error decrypting", err);
                         return { ...entry, content: "???" };
@@ -245,20 +268,17 @@ async function getEncryptionKey(password: string): Promise<CryptoKey> {
     );
 }
 
-async function decryptData(encryptedBuffer: ArrayBuffer, key: CryptoKey): Promise<string> {
+async function decryptData(encryptedBuffer: ArrayBuffer, key: CryptoKey): Promise<ArrayBuffer> {
     const encryptedArray = new Uint8Array(encryptedBuffer);
 
     const iv = encryptedArray.slice(0, 12);
     const encryptedData = encryptedArray.slice(12);
 
-    const decryptedBuffer = await crypto.subtle.decrypt(
+    return await crypto.subtle.decrypt(
         { name: "AES-GCM", iv },
         key,
         encryptedData
     );
-
-    const decoder = new TextDecoder();
-    return decoder.decode(decryptedBuffer);
 }
 
 

@@ -1,6 +1,5 @@
 package com.ownwn.datastore
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import java.io.File
 
 object Database {
@@ -35,10 +34,9 @@ object Database {
        }
     }
 
-    fun getFileAndName(time: Long): Pair<File, String>? {
-        return dataRoot.listFiles()?.firstOrNull {
-            Entry.createEntry(it)?.createdAt == time
-        }?.let { Pair(it, it.name.split("--BORDER--")[1]) }
+    fun getFileBytes(time: Long, fileName: String): String? {
+
+        return dataRoot.listFiles()?.firstOrNull { Entry.createEntry(it)?.createdAt == time && Entry.createEntry(it)?.name == fileName }?.readText()?.trim()
     }
 
     private fun getFiles(): List<File> {
