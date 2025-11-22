@@ -19,22 +19,24 @@ class Controller {
     }
 
     @PostMapping("/submit")
-    fun submit(@RequestBody content: String?): ResponseEntity<String> {
-        return content
-            ?.let { Database.addEntry(content); ResponseEntity.ok("ok!")}
-            ?: ResponseEntity.badRequest().body("Bad content!")
-    }
+    fun submit(@RequestBody items: List<Map<String?, String?>?>?): ResponseEntity<String> {
+        if (items == null) return ResponseEntity.badRequest().body("null items")
+        println(items)
+        for (item in items) {
+            if (item.isNullOrEmpty()) continue
+            val type: String = item["type"] ?: return ResponseEntity.badRequest().body("missing type")
+            val content = item[type] ?: return ResponseEntity.badRequest().body("missing content")
+            when (type) {
+                "text" -> Database.addEntry(content)
+                "file" -> try {
+                    Database.addEntry(content, item["filename"])
+                } catch (e: Exception) {
+                    return ResponseEntity.badRequest().body(e.message)
+                }
 
-    @PostMapping("/submitfile", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
-    fun submitFile(@RequestPart("files") files: List<MultipartFile?>?): ResponseEntity<String> {
-        files?.forEach {
-            try {
-                Database.addEntry(it?: return ResponseEntity.badRequest().body("Bad individual file"))
-            } catch (e: Exception) {
-                return ResponseEntity.badRequest().body("Error submitting files! $e")
+                else -> return ResponseEntity.badRequest().body("unknown type $type")
             }
-        } ?: ResponseEntity.badRequest().body("Bad file list")
-
+        }
         return ResponseEntity.ok("ok!")
     }
 

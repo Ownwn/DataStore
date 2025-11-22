@@ -73,6 +73,20 @@ details[open] > summary {
     display: none;
 }
 
+.mainFlex {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+}
+.mainFlex > * {
+    padding: 40px;
+}
+
+
+.keyBox {
+    max-height: 30px;
+    margin: 10px
+}
 
 
 .fileInput {

@@ -1,6 +1,6 @@
 package com.ownwn.datastore
 
-import org.springframework.web.multipart.MultipartFile
+import com.fasterxml.jackson.databind.ObjectMapper
 import java.io.File
 
 object Database {
@@ -8,25 +8,25 @@ object Database {
 
     init {
         if (!dataRoot.exists()) dataRoot.mkdir()
-        if (dataRoot.listFiles().orEmpty().isEmpty()) {
-            addEntry("test")
-        }
     }
 
     fun addEntry(content: String) {
+        dataRoot.mkdir()
         val file = dataRoot.resolve("TEXT${System.currentTimeMillis()}")
         if (file.exists()) throw RuntimeException("File $file already exists!")
         file.writeText(content)
 
     }
 
-    fun addEntry(file: MultipartFile) {
-        val fileName = "FILE${System.currentTimeMillis()}--BORDER--${file.originalFilename}"
+    @Throws(Exception::class)
+    fun addEntry(fileBytes: String, fileName: String?) {
+        dataRoot.mkdir()
+        fileName ?: throw RuntimeException("Bad file name")
+
+        val fileName = "FILE${System.currentTimeMillis()}--BORDER--$fileName"
         val filePath = dataRoot.resolve(fileName)
         if (filePath.exists()) throw RuntimeException("File $filePath already exists!")
-        file.inputStream.use {
-            filePath.outputStream().use { outputStream -> it.copyTo(outputStream) }
-        }
+        filePath.outputStream().write(fileBytes.toByteArray())
     }
 
     fun getEntries(): List<Entry> {
