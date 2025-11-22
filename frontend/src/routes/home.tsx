@@ -11,7 +11,6 @@ export function Home() {
     let [encryptionKey, setEncryptionKey] = useState("")
 
     useEffect(() => {
-
         const interval = setInterval(() => {
             setSecondsSinceUpdate(prev => prev + 1);
         }, 1000);
@@ -27,6 +26,10 @@ export function Home() {
     }, [encryptionKey]);
 
     useEffect(() => {
+        if (crypto.subtle === undefined) {
+            setError("Crypto not available! Are you using HTTPS?")
+        }
+
         const encryption = document.cookie
             .split("; ")
             .find((row) => row.startsWith("encodedEncryption="))
@@ -249,7 +252,6 @@ function getValue() {
 /** Below here is AI slop. Crypto's gotta be the safest thing to vibe code right? */
 
 async function getEncryptionKey(password: string): Promise<CryptoKey> {
-
     const encoder = new TextEncoder();
     const keyMaterial = await crypto.subtle.importKey(
         "raw",
