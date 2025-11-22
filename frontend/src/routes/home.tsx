@@ -1,7 +1,7 @@
 import {useEffect, useState} from "react";
 import styles from "./home.module.css";
 
-type Entry = { name: string, plainText: boolean, content: string, createdAt: number }
+type Entry = { name: string, plainText: boolean, content: string, createdAt: number, id: number }
 
 export function Home() {
     let [items, setItems] = useState<Entry[]>([]);
@@ -60,8 +60,10 @@ export function Home() {
     </div>;
 
     function formatEntry(entry: Entry)  {
+        let entryText;
+
         if (entry.plainText) {
-            return (
+            entryText =
                 <>
                     {entry.content.length >= 30 ? (
                         <details>
@@ -71,32 +73,52 @@ export function Home() {
                     ) : entry.content}
                     <button onClick={() => copyToClipboard(entry.content)} className={styles.dataButton}>Copy</button>
 
-                </>)
+                </>
+        } else {
+            entryText = <button type="button" onClick={() => {
+                const created = String(entry.createdAt)
+                const fileNameBase64 = btoa(entry.name)
+
+                fetch("downloadfile" + "?created=" + created + "&filename=" + fileNameBase64)
+                    .then(response => response.text())
+                    .then(async (text) => {
+                        const key = await getEncryptionKey(encryptionKey)
+
+                        const buffer = base64ToArrayBuffer(text)
+
+                        const blob = new Blob([await decryptData(buffer, key)], { type: "application/octet-stream" });
+                        const url = URL.createObjectURL(blob)
+                        const a = document.createElement("a")
+                        a.href = url
+                        a.download = entry.name
+                        a.click()
+                    })
+                    .catch(e => {
+                        console.error(e)
+                        setError(e.message)
+                    })
+
+            }}>{entry.name}</button>
         }
-        return <button type="button" onClick={() => {
-            const created = String(entry.createdAt)
-            const fileNameBase64 = btoa(entry.name)
+        return <>
+        {entryText}
+        <span><button onClick={() => deleteItem(entry)} className={styles.deleteButton}>Delete</button></span>
+        </>
 
-            fetch("downloadfile" + "?created=" + created + "&filename=" + fileNameBase64)
-                .then(response => response.text())
-                .then(async (text) => {
-                    const key = await getEncryptionKey(encryptionKey)
+    }
 
-                    const buffer = base64ToArrayBuffer(text)
-
-                    const blob = new Blob([await decryptData(buffer, key)], { type: "application/octet-stream" });
-                    const url = URL.createObjectURL(blob)
-                    const a = document.createElement("a")
-                    a.href = url
-                    a.download = entry.name
-                    a.click()
-                })
-                .catch(e => {
-                    console.error(e)
-                    setError(e.message)
-            })
-
-        }}>{entry.name}</button>
+    async function deleteItem(entry: Entry) {
+        if (!confirm("Confirm deletion?")) {
+            return
+        }
+        const response = await fetch("delete" + "?created=" + String(entry.createdAt) + "&id=" + entry.id, {
+            method: "DELETE"
+        })
+        if (!response.ok) {
+            setError("Error deleting item " + entry)
+            return
+        }
+        await fetchItems()
 
     }
 
@@ -119,14 +141,14 @@ export function Home() {
         try {
             const res = await fetch("entries");
             if (!res.ok) {
-                console.log("Error getting entries", res.status)
+                setError("Error getting entries" + res.status)
                 return
             }
             const entries = await res.json();
             setSecondsSinceUpdate(0);
 
             if (!entries || !encryptionKey) {
-                setItems([{name: "???", plainText: true, content: "???", createdAt: Date.now()}])
+                setError("fetch was ok but error getting entries anyway.")
                 return
             }
 
@@ -151,6 +173,7 @@ export function Home() {
 
 
         } catch (err) {
+            setError("Error fetching items. Check the console")
             console.log(err);
         }
     }
@@ -233,7 +256,7 @@ function EncryptionStatus({encryptionKey, setEncryptionKey}) {
             {encryptionKey.length !== 0 ? <></> :
                 <>
                     <button type="button" onClick={() => setEncryptionKey(getValue())}>Set key</button>
-                    <input type="text" id="encryptioninput" placeholder="passphrase" className={styles.keyBox}/>
+                    <input type="password" id="encryptioninput" placeholder="Encryption Key" className={styles.keyBox}/>
                 </>
             }
 

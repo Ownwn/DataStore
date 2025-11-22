@@ -2,7 +2,7 @@ package com.ownwn.datastore
 
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import java.util.Base64
+import java.util.*
 
 
 @RestController
@@ -32,6 +32,17 @@ class Controller {
             }
         }
         return ResponseEntity.ok("ok!")
+    }
+
+    @DeleteMapping("/delete")
+    fun deleteEntry(@RequestParam("created") created: String?, @RequestParam("id") id: Int?): ResponseEntity<String> {
+        if (created?.toLongOrNull() == null || id == null) {
+            return ResponseEntity.badRequest().build()
+        }
+        if (Database.deleteEntry(created.toLong(), id)) {
+            return ResponseEntity.ok().build()
+        }
+        return ResponseEntity.notFound().build()
     }
 
     @GetMapping("/downloadfile")

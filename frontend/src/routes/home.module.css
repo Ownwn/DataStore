@@ -50,10 +50,30 @@
     background-color: rgba(0, 0, 0, 0.6);
     color: white;
     cursor: pointer;
-    opacity: 0.2;
+    opacity: 0.4;
+}
+
+.deleteButton {
+    position: absolute;
+    top: 50%;
+    left: 90%;
+    transform: translate(-50%, -50%);
+    height: 50px;
+    width: 100px;
+    font-size: 24px;
+    border: none;
+    border-radius: 8px;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: white;
+    cursor: pointer;
+    opacity: 0.4;
 }
 
 .dataButton:hover {
+    opacity: 1;
+}
+
+.deleteButton:hover {
     opacity: 1;
 }
 
