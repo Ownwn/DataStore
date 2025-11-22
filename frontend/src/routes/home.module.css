@@ -22,6 +22,11 @@
     text-align: center;
 }
 
+.encryptionBox {
+    position: absolute;
+    left: 0;
+}
+
 .dataItem {
     font-size: 50px;
     list-style: none;
@@ -80,6 +85,10 @@ details[open] > summary {
 }
 .mainFlex > * {
     padding: 40px;
+}
+
+.error {
+    color: #880000;
 }
 
 

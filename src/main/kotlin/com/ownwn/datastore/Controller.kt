@@ -36,7 +36,6 @@ class Controller {
 
     @GetMapping("/downloadfile")
     fun downloadFile(@RequestParam("created") created: String?, @RequestParam("filename") fileNameBase64: String?): ResponseEntity<String> {
-        println("heyy")
         if (created?.toLongOrNull() == null || fileNameBase64 == null) {
             return ResponseEntity.badRequest().build()
         }

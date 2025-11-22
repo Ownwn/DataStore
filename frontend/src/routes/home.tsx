@@ -21,7 +21,7 @@ export function Home() {
 
     useEffect(() => {
         if (encryptionKey.length !== 0) {
-            document.cookie = "encodedEncryption=" + String(encryptionKey)
+            document.cookie = "encodedEncryption=" + String(encryptionKey) + "; max-age=" + String(60*60*24*365)
             fetchItems()
         }
     }, [encryptionKey]);
@@ -43,8 +43,9 @@ export function Home() {
             <EncryptionStatus encryptionKey={encryptionKey} setEncryptionKey={setEncryptionKey}/>
         </div>
 
+
         <h2>Last Update: {secondsSinceUpdate + "s"}</h2>
-        <h2>{error}</h2>
+        <h2 className={styles.error}>{error}</h2>
         <br/>
         <ol>
             {items.map((item: Entry, index) => (
@@ -89,7 +90,7 @@ export function Home() {
                 })
                 .catch(e => {
                     console.error(e)
-                    setError(e)
+                    setError(e.message)
             })
 
         }}>{entry.name}</button>
@@ -224,10 +225,14 @@ function GreetingForm({ fetchItems, setError, encryptionKey}) {
 function EncryptionStatus({encryptionKey, setEncryptionKey}) {
     return <>
         <div className={styles.encryptionBox}>
-            <p>Your encryption key is {encryptionKey.length===0 ? "missing" : "ready"}</p>
+            <p>{encryptionKey.length === 0 ? "Please set your encryption key below" : "Clear your cookies to change your encryption key"}</p>
             <br/>
-            <input type="text" id="encryptioninput" placeholder="passphrase" className={styles.keyBox}/>
-            <button type="button" onClick={() => setEncryptionKey(getValue())}>Set key</button>
+            {encryptionKey.length !== 0 ? <></> :
+                <>
+                    <button type="button" onClick={() => setEncryptionKey(getValue())}>Set key</button>
+                    <input type="text" id="encryptioninput" placeholder="passphrase" className={styles.keyBox}/>
+                </>
+            }
 
         </div>
     </>
