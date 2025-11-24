@@ -10,6 +10,8 @@ export function Home() {
     let [secondsSinceUpdate, setSecondsSinceUpdate] = useState(0)
     let [encryptionKey, setEncryptionKey] = useState("")
 
+    const images = ["jpg", "jpeg", "png", "webp", "gif", "svg"]
+
     useEffect(() => {
         const interval = setInterval(() => {
             setSecondsSinceUpdate(prev => prev + 1);
@@ -86,36 +88,61 @@ export function Home() {
 
                 </>
         } else {
-            entryText = <button type="button" onClick={() => {
-                const created = String(entry.createdAt)
-                const fileNameBase64 = btoa(entry.name)
+            const created = String(entry.createdAt)
+            const fileNameBase64 = btoa(entry.name)
 
-                fetch("downloadfile" + "?created=" + created + "&filename=" + fileNameBase64)
-                    .then(response => response.text())
-                    .then(async (text) => {
-                        const key = await getEncryptionKey(encryptionKey)
-
-                        const buffer = base64ToArrayBuffer(text)
-
-                        const blob = new Blob([await decryptData(buffer, key)], { type: "application/octet-stream" });
-                        const url = URL.createObjectURL(blob)
-                        const a = document.createElement("a")
-                        a.href = url
-                        a.download = entry.name
-                        a.click()
-                    })
-                    .catch(e => {
-                        console.error(e)
-                        setError(e.message)
-                    })
+            entryText = <button type="button" onClick={async () => {
+                const url = await getDownloadUrl(created, fileNameBase64) as string
+                const a = document.createElement("a")
+                a.href = url
+                a.download = entry.name
+                a.click()
 
             }}>{entry.name}</button>
+
+            if (isImage(entry.name)) {
+
+                entryText = <><button id={"imageButton_" + entry.id + entry.createdAt} onClick={async () => {
+                    const url = await getDownloadUrl(created, fileNameBase64) as string
+                    const img = document.createElement("img")
+
+                    img.src = url
+                    img.alt = "image for " + entry.name
+                    img.width = 500
+                    img.height = 500
+
+                    document.getElementById("imageButton_" + entry.id + entry.createdAt)?.replaceWith(img)
+                }}>View</button><>{entryText}</></>
+            }
+
         }
         return <>
         {entryText}
         <span><button onClick={() => deleteItem(entry)} className={styles.deleteButton}>Delete</button></span>
         </>
 
+    }
+
+    async function getDownloadUrl(created: string, fileNameBase64: string) {
+        try {
+            const res = await fetch("downloadfile" + "?created=" + created + "&filename=" + fileNameBase64)
+            const text = await res.text()
+
+            const key = await getEncryptionKey(encryptionKey)
+
+            const buffer = base64ToArrayBuffer(text)
+
+            const blob = new Blob([await decryptData(buffer, key)], { type: "application/octet-stream" });
+            return URL.createObjectURL(blob)
+        } catch (e: any) {
+            console.error(e)
+            setError(e.message)
+        }
+
+    }
+
+    function isImage(name: string): boolean {
+        return images.some(s => name.endsWith(s))
     }
 
     async function deleteItem(entry: Entry) {
