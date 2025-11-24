@@ -39,12 +39,23 @@ export function Home() {
         }
     }, []);
 
-
-    return <div className={styles.dataBackground + " " + styles.main}>
-        <div className={styles.mainFlex}>
+    let inner;
+    if (encryptionKey.length === 0) {
+        inner = <div className={styles.mainFlex + " " + styles.padding}>
             <GreetingForm fetchItems={fetchItems} setError={setError} encryptionKey={encryptionKey}/>
             <EncryptionStatus encryptionKey={encryptionKey} setEncryptionKey={setEncryptionKey}/>
         </div>
+    } else {
+        inner = <>
+            <EncryptionStatus encryptionKey={encryptionKey} setEncryptionKey={setEncryptionKey}/>
+        <div className={styles.mainFlex}>
+            <GreetingForm fetchItems={fetchItems} setError={setError} encryptionKey={encryptionKey}/>
+        </div>
+
+        </>
+    }
+    return <div className={styles.dataBackground + " " + styles.main}>
+        {inner}
 
 
         <h2>Last Update: {secondsSinceUpdate + "s"}</h2>
