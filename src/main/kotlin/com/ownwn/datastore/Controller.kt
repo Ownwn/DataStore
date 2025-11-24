@@ -56,4 +56,27 @@ class Controller {
 
         return ResponseEntity.ok(fileBytes.trim())
     }
+    @GetMapping("/clearcookie")
+    fun clearCookies(): String {
+        return """
+            <!DOCTYPE html>
+            <html>
+            <body>
+            <button style="width: 300px; height: 100px;" type="button" onclick="clearCookie()">clear cookies</button>
+            </body>
+            
+            <script>
+            function clearCookie() {
+                document.cookie = "encodedEncryption=;"
+            }
+            
+            
+            </script>
+            
+            </html>
+            
+            
+            
+        """.trimIndent()
+    }
 }
