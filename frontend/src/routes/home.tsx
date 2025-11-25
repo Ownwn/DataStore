@@ -353,7 +353,8 @@ async function decryptData(encryptedBuffer: ArrayBuffer, key: CryptoKey): Promis
 async function encryptDataToBase64(data: string | ArrayBuffer, key: CryptoKey): Promise<string> {
     const arrayBuffer = await encryptData(data, key);
     const uint8Array = new Uint8Array(arrayBuffer);
-    return btoa(String.fromCharCode(...uint8Array));
+    let string = uint8Array.reduce((current, next) => current + String.fromCharCode(next), "")
+    return btoa(string);
 }
 
 async function encryptData(data: string | ArrayBuffer, key: CryptoKey): Promise<ArrayBuffer> {
