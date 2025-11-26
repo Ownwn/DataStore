@@ -4,7 +4,14 @@ import styles from "./home.module.css";
 type Entry = { name: string, plainText: boolean, content: string, createdAt: number, id: number }
 
 export function Home() {
-    let [items, setItems] = useState<Entry[]>([]);
+    let [items, setItems] = useState<Entry[]>([
+
+        // {name: "first", plainText: true, content:"testing content here", createdAt: 1000, id:18183738},
+        // {name: "second test", plainText: true, content:"Inventore reprehenderit consequatur velit qui totam. Occaecati sint voluptatem amet nobis repellendus reiciendis. Qui volup", createdAt: 1000, id:18183738},
+        // {name: "a file", plainText: false, content:"File", createdAt: 2000, id:181836738},
+        // {name: "long filename testing  123123121928273.png", plainText: false, content:"File", createdAt: 2000, id:181836738}
+
+    ]);
     // @ts-ignore
     let [error, setError] = useState("");
     let [secondsSinceUpdate, setSecondsSinceUpdate] = useState(0)
@@ -66,7 +73,9 @@ export function Home() {
         <ol>
             {items.map((item: Entry, index) => (
                 <li className={styles.dataItem} key={index}>
-                    {formatEntry(item)}
+                    <div className={styles.itemFormat}>
+                        {formatEntry(item)}
+                    </div>
                 </li>
             ))}
         </ol>
@@ -80,7 +89,7 @@ export function Home() {
                 <>
                     {entry.content.length >= 30 ? (
                         <details>
-                            <summary>{entry.content.substring(0, 30) + "..."}</summary>
+                            <summary>{trimToFit(entry.content, 30)}</summary>
                             <p>{entry.content}</p>
                         </details>
                     ) : entry.content}
@@ -91,18 +100,18 @@ export function Home() {
             const created = String(entry.createdAt)
             const fileNameBase64 = btoa(entry.name)
 
-            entryText = <button type="button" onClick={async () => {
+            entryText = <button type="button" className={styles.dataButton} onClick={async () => {
                 const url = await getDownloadUrl(created, fileNameBase64) as string
                 const a = document.createElement("a")
                 a.href = url
                 a.download = entry.name
                 a.click()
 
-            }}>{entry.name}</button>
+            }}>{"Download " + trimToFit(entry.name, 10)}</button>
 
             if (isImage(entry.name)) {
 
-                entryText = <><button id={"imageButton_" + entry.id + entry.createdAt} onClick={async () => {
+                entryText = <><button className={styles.dataButton + " " + styles.bobby} id={"imageButton_" + entry.id + entry.createdAt} onClick={async () => {
                     const url = await getDownloadUrl(created, fileNameBase64) as string
                     const img = document.createElement("img")
 
@@ -216,6 +225,12 @@ export function Home() {
     }
 }
 
+function trimToFit(str: string, len: number) {
+    if (str.length < len) {
+        return str;
+    }
+    return str.substring(0, len) + "..."
+}
 
 // @ts-ignore
 function GreetingForm({ fetchItems, setError, encryptionKey}) {
