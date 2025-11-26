@@ -126,13 +126,12 @@ export function Home() {
     async function getDownloadUrl(created: string, fileNameBase64: string) {
         try {
             const res = await fetch("downloadfile" + "?created=" + created + "&filename=" + fileNameBase64)
-            const text = await res.text()
+
+            const bytes = await res.bytes()
 
             const key = await getEncryptionKey(encryptionKey)
 
-            const buffer = base64ToArrayBuffer(text)
-
-            const blob = new Blob([await decryptData(buffer, key)], { type: "application/octet-stream" });
+            const blob = new Blob([await decryptData(bytes.buffer, key)], { type: "application/octet-stream" });
             return URL.createObjectURL(blob)
         } catch (e: any) {
             console.error(e)
@@ -233,10 +232,10 @@ function GreetingForm({ fetchItems, setError, encryptionKey}) {
 
         const key = await getEncryptionKey(encryptionKey)
 
-        let body = [{}]
+        const body = new FormData()
 
         if (text) {
-            body.push({"type": "text", "text": await encryptDataToBase64(text as string, key)})
+            body.append("text", await encryptDataToBase64(text, key))
         }
 
         if (files[0].size !== 0) {
@@ -245,18 +244,16 @@ function GreetingForm({ fetchItems, setError, encryptionKey}) {
             )
 
             for (let i = 0; i < files.length; i++) {
-                const encryptedFileBytes = await encryptDataToBase64(fileArrays[i], await getEncryptionKey(encryptionKey))
-                body.push({"type": "file", "file": encryptedFileBytes.toString(), "filename": files[i].name})
+                const buf = await encryptData(fileArrays[i], key)
+                const blob = new Blob([buf], {type: "application/octet-stream"})
+                body.append("file", blob, files[i].name)
             }
         }
 
 
         const response = await fetch("submit", {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(body)
+            body: body
         });
 
 

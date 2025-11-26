@@ -21,14 +21,14 @@ object Database {
     }
 
     @Throws(Exception::class)
-    fun addEntry(fileBytes: String, fileName: String?) {
+    fun addEntry(fileBytes: ByteArray, fileName: String?) {
         dataRoot.mkdir()
         fileName ?: throw RuntimeException("Bad file name")
 
         val filePath = dataRoot.resolve(createFileName(fileName))
 
         if (filePath.exists()) throw RuntimeException("File $filePath already exists!")
-        filePath.outputStream().write(fileBytes.toByteArray())
+        filePath.outputStream().write(fileBytes)
     }
 
     fun createFileName(fileName: String?): String {
@@ -53,8 +53,8 @@ object Database {
        }
     }
 
-    fun getFileBytes(time: Long, fileName: String): String? {
-        return dataRoot.listFiles()?.firstOrNull { Entry.createEntry(it)?.createdAt == time && Entry.createEntry(it)?.name == fileName }?.readText()?.trim()
+    fun getFileBytes(time: Long, fileName: String): ByteArray? {
+        return dataRoot.listFiles()?.firstOrNull { Entry.createEntry(it)?.createdAt == time && Entry.createEntry(it)?.name == fileName }?.readBytes()
     }
 
     private fun getFiles(): List<File> {
