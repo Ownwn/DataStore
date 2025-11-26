@@ -93,7 +93,7 @@ export function Home() {
                             <p>{entry.content}</p>
                         </details>
                     ) : entry.content}
-                    <button onClick={() => copyToClipboard(entry.content)} className={styles.dataButton}>Copy</button>
+                    <button onClick={() => copyToClipboard(entry.content)} className={styles.copyButton}>Copy</button>
 
                 </>
         } else {
