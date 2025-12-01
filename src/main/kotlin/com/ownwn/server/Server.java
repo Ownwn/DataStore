@@ -9,34 +9,36 @@ import java.util.Map;
 
 public class Server {
     private final Map<String, RequestHandler> methods;
-    private static final String host = "localhost";
+    private final String friendlyAddress;
 
-    public static void create(int port) {
+    public static void create(String hostName, int port) {
         try {
             String packageName = StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE)
                     .getCallerClass()
                     .getPackageName();
-            new Server(packageName, port);
-            System.out.println("Server started at http://" + host + ":" + port);
+            Server s = new Server(packageName, hostName, port);
+            System.out.println("Server started at " + s.friendlyAddress);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private Server(String packageName, int port) throws IOException {
-        HttpServer server = HttpServer.create(new InetSocketAddress("localhost", port), 0);
-
+    private Server(String packageName, String hostName, int port) throws IOException {
+        HttpServer server = HttpServer.create(new InetSocketAddress(hostName, port), 0);
         methods = AnnotationFinder.getAllAnnotatedMethods(packageName);
 
         server.createContext("/").setHandler(exchange -> {
             try {
                 handle(exchange);
             } catch (Exception e) {
+                //noinspection CallToPrintStackTrace
                 e.printStackTrace();
             }
         });
 
         server.start();
+
+        friendlyAddress = server.getAddress().toString().replaceFirst("^/", "");
     }
 
     private void handle(HttpExchange exchange) throws IOException {
