@@ -6,7 +6,8 @@ import com.ownwn.server.Request;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
-public interface Interceptor { // todo jdoc for everything
+/** Acts like middleware, used to intercept requests before theyre routed */
+public interface Interceptor {
 
     void handle(Request request, InterceptReciever interceptReciever);
 
