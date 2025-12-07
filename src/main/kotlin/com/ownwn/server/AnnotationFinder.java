@@ -1,15 +1,20 @@
 package com.ownwn.server;
 
+import com.ownwn.server.intercept.Intercept;
+import com.ownwn.server.intercept.Interceptor;
+
 import java.io.File;
+import java.io.IOException;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.*;
 
 public class AnnotationFinder {
+    private static Map<Class<?>, Object> instances = new HashMap<>();
     private AnnotationFinder() {}
 
-    static Map<String, RequestHandler> getAllAnnotatedMethods(String packageName) {
-        Map<String, RequestHandler> map = new HashMap<>();
+    static void loadAllAnnotatedMethods(String packageName, Map<String, RequestHandler> handleMethods, List<Interceptor> interceptMethods) {
 
         try {
             ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
@@ -23,13 +28,15 @@ public class AnnotationFinder {
                 classes.addAll(findClasses(directory, packageName));
             }
 
-            classes.forEach(clazz -> loadMethods(clazz, map));
+            classes.forEach(clazz -> loadMethods(clazz, handleMethods, interceptMethods));
 
-        } catch (Exception e) {
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
+        if (handleMethods.isEmpty()) {
+            System.err.println("No handlers found, your server won't do anything...");
+        }
 
-        return map;
     }
 
     private static List<Class<?>> findClasses(File directory, String packageName) {
@@ -55,32 +62,59 @@ public class AnnotationFinder {
         return classes;
     }
 
-    private static <T> void loadMethods(Class<T> clazz, Map<String, RequestHandler> map) {
+    private static <T> void loadMethods(Class<T> clazz, Map<String, RequestHandler> map, List<Interceptor> interceptors) {
+        loadInterceptors(clazz, getAnnotatedMethods(clazz, Intercept.class), interceptors);
+        loadHandlers(clazz, getAnnotatedMethods(clazz, Handle.class), map);
+    }
 
-        List<Method> methods = Arrays.stream(clazz.getDeclaredMethods())
-                .filter(m -> m.isAnnotationPresent(Handle.class))
+    private static <T> List<Method> getAnnotatedMethods(Class<T> clazz, Class<? extends Annotation> annotationClass) {
+        return Arrays.stream(clazz.getDeclaredMethods())
+                .filter(m -> m.isAnnotationPresent(annotationClass))
                 .toList();
+    }
 
+    @SuppressWarnings("unchecked")
+    private static <T> T getInstance(Class<T> clazz) {
+        // noinspection all
+        T instance = (T) instances.computeIfAbsent(clazz, k -> {
+            try {
+                return clazz.getDeclaredConstructor().newInstance();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
+        return instance;
+    }
+
+    private static <T> void loadHandlers(Class<T> clazz, List<Method> methods, Map<String, RequestHandler> handlerMap) {
         if (methods.isEmpty()) {
             return;
         }
 
-        T instance;
+        T instance = getInstance(clazz);
 
-        try {
-            instance = clazz.getDeclaredConstructor().newInstance();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-
-        methods.forEach(m -> {
-            Handle annotation = Objects.requireNonNull(m.getAnnotation(Handle.class));
-            RequestHandler handler = RequestHandler.from(m, annotation, instance);
+        for (Method method : methods) {
+            Handle annotation = method.getAnnotation(Handle.class);
+            RequestHandler handler = RequestHandler.from(method, annotation, instance);
             String path = annotation.value();
 
-            if (map.put(path, handler) != null) {
-                throw new RuntimeException("Duplicate paths " + path);
+            if (handlerMap.put(path, handler) != null) {
+                throw new RuntimeException("Duplicate path: " + path);
             }
-        });
+        }
+    }
+
+    private static <T> void loadInterceptors(Class<T> clazz, List<Method> methods, List<Interceptor> interceptors) {
+        if (methods.isEmpty()) {
+            return;
+        }
+
+        T instance = getInstance(clazz);
+
+        for (Method method : methods) {
+            Intercept annotation = method.getAnnotation(Intercept.class);
+            Interceptor interceptor = Interceptor.from(method, annotation, instance);
+            interceptors.add(interceptor);
+        }
     }
 }

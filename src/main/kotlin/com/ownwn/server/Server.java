@@ -1,14 +1,20 @@
 package com.ownwn.server;
 
+import com.ownwn.server.intercept.InterceptReciever;
+import com.ownwn.server.intercept.Interceptor;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Server {
-    private final Map<String, RequestHandler> methods;
+    private final Map<String, RequestHandler> handleMethods = new HashMap<>();
+    private final List<Interceptor> interceptMethods = new ArrayList<>();
     private final String friendlyAddress;
 
     public static void create(String hostName, int port) {
@@ -25,7 +31,7 @@ public class Server {
 
     private Server(String packageName, String hostName, int port) throws IOException {
         HttpServer server = HttpServer.create(new InetSocketAddress(hostName, port), 0);
-        methods = AnnotationFinder.getAllAnnotatedMethods(packageName);
+        AnnotationFinder.loadAllAnnotatedMethods(packageName, handleMethods, interceptMethods);
 
         server.createContext("/").setHandler(exchange -> {
             try {
@@ -42,8 +48,23 @@ public class Server {
     }
 
     private void handle(HttpExchange exchange) throws IOException {
+
+        Request request = Request.createFromExchange(exchange);
+
+        for (Interceptor interceptor : interceptMethods) {
+            InterceptReciever rec = new InterceptReciever();
+            interceptor.handle(request, rec);
+
+            if (rec.isClosed()) {
+                exchange.sendResponseHeaders(rec.getResponse().status(), rec.getResponse().body().length);
+                exchange.getResponseBody().write(rec.getResponse().body());
+                exchange.getResponseBody().close();
+                return;
+            }
+        }
+
         String url = cleanUrl(exchange.getRequestURI().getPath());
-        RequestHandler handler = methods.get(url);
+        RequestHandler handler = handleMethods.get(url);
 
         if (handler == null) {
             exchange.sendResponseHeaders(404, "404".length());
@@ -57,7 +78,6 @@ public class Server {
             exchange.getResponseBody().close();
         }
 
-        Request request = Request.createFromExchange(exchange);
         Response response = handler.handle(request);
 
         exchange.sendResponseHeaders(response.status(), response.body().length);

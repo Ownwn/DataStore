@@ -8,8 +8,6 @@ interface RequestHandler {
 
     HttpMethod method();
 
-    boolean requiresAuth();
-
 
     static RequestHandler from(Method m, Handle handle, Object instance) {
         validateExchangeMethod(m);
@@ -27,11 +25,6 @@ interface RequestHandler {
             @Override
             public HttpMethod method() {
                 return handle.method();
-            }
-
-            @Override
-            public boolean requiresAuth() {
-                return handle.requiresAuth();
             }
         };
 
