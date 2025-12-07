@@ -1,5 +1,8 @@
 package com.ownwn.datastore
 
+import com.ownwn.server.Request
+import com.ownwn.server.intercept.Intercept
+import com.ownwn.server.intercept.InterceptReciever
 import jakarta.servlet.Filter
 import jakarta.servlet.FilterChain
 import jakarta.servlet.ServletRequest
@@ -19,6 +22,11 @@ const val cookieName: String = "COOKIE_VALUE"
 
 @Component
 class Auth : Filter {
+
+    @Intercept
+    fun auth(request: Request, interceptor: InterceptReciever) {
+    }
+
     override fun doFilter(req: ServletRequest?,res: ServletResponse?,chain: FilterChain) {
         if (req !is HttpServletRequest || res !is HttpServletResponse) {
             System.err.println("Bad req")

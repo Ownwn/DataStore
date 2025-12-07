@@ -1,8 +1,8 @@
 package com.ownwn.datastore
 
 import com.ownwn.datastore.Env2.loadEnv
+import com.ownwn.server.Server
 import org.springframework.boot.autoconfigure.SpringBootApplication
-import org.springframework.boot.runApplication
 import java.nio.file.Files
 import java.nio.file.Path
 
@@ -15,9 +15,9 @@ class DataStoreApplication {
     }
 }
 
-fun main(args: Array<String>) {
+fun main() {
     loadEnv()
-    runApplication<DataStoreApplication>(*args)
+    Server.create("127.0.0.1", DataStoreApplication.getEnv("PORT")!!.toInt())
 }
 
 private object Env2 {

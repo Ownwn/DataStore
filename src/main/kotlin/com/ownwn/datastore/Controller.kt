@@ -1,5 +1,8 @@
 package com.ownwn.datastore
 
+import com.ownwn.server.Handle
+import com.ownwn.server.Request
+import com.ownwn.server.Response
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -10,9 +13,10 @@ import java.util.*
 @RestController
 @CrossOrigin
 class Controller {
-    @GetMapping("/entries")
-    fun entries(): ResponseEntity<List<Entry>> {
-        return ResponseEntity.ok(Database.getEntries())
+
+    @Handle("entries")
+    fun entries(request: Request): Response {
+        return Response.ok(Database.getEntries().toString())
     }
 
     @PostMapping("/submit", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
@@ -61,9 +65,10 @@ class Controller {
 
         return ResponseEntity.ok(fileBytes)
     }
-    @GetMapping("/clearcookie")
-    fun clearCookies(): String {
-        return """
+
+    @Handle("clearcookie")
+    fun clearCookies(request: Request): Response {
+        val html = """
             <!DOCTYPE html>
             <html>
             <body>
@@ -83,5 +88,7 @@ class Controller {
             
             
         """.trimIndent()
+
+        return Response.ok(html)
     }
 }
