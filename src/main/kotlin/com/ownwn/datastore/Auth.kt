@@ -1,63 +1,41 @@
 package com.ownwn.datastore
 
 import com.ownwn.server.Request
+import com.ownwn.server.Response
 import com.ownwn.server.intercept.Intercept
 import com.ownwn.server.intercept.InterceptReciever
-import jakarta.servlet.Filter
-import jakarta.servlet.FilterChain
-import jakarta.servlet.ServletRequest
-import jakarta.servlet.ServletResponse
-import jakarta.servlet.http.Cookie
-import jakarta.servlet.http.HttpServletRequest
-import jakarta.servlet.http.HttpServletResponse
-import org.springframework.stereotype.Component
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.RequestMapping
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
-import java.util.*
 
 const val loginPath: String = "/login"
 const val cookieName: String = "COOKIE_VALUE"
 
-@Component
-class Auth : Filter {
-
+class Auth {
     @Intercept
     fun auth(request: Request, interceptor: InterceptReciever) {
-    }
-
-    override fun doFilter(req: ServletRequest?,res: ServletResponse?,chain: FilterChain) {
-        if (req !is HttpServletRequest || res !is HttpServletResponse) {
-            System.err.println("Bad req")
+        if (loginPath == request.path()) {
             return
         }
 
-        if (loginPath == req.requestURI) {
-            chain.doFilter(req, res)
-            return
-        }
-
-        val cookies = req.cookies
-        if (cookies == null || cookies.size == 0) {
-            res.sendRedirect(loginPath)
+        if (request.cookies().isNullOrEmpty()) {
+            interceptor.closeWithResponse(Response.softRedirect(loginPath))
             return
         }
 
         val cookieValue = DataStoreApplication.getEnv(cookieName) ?: run {
             System.err.println("Missing cookie value!")
-            res.sendRedirect(loginPath)
+            interceptor.closeWithResponse(Response.softRedirect(loginPath))
             return
         }
 
-        val authenticated = Arrays.stream(cookies).anyMatch { c: Cookie? -> cookieName == c?.name && cookieValue == URLDecoder.decode(c.value,
-            StandardCharsets.UTF_8) }
+
+        val authenticated = request.cookies?.get(cookieName)?.let { URLDecoder.decode(it, StandardCharsets.UTF_8) } == cookieValue
         if (!authenticated) {
-            res.sendRedirect(loginPath)
+            interceptor.closeWithResponse(Response.softRedirect(loginPath))
             return
         }
-
-        chain.doFilter(req, res)
     }
 }
 
