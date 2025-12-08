@@ -1,9 +1,9 @@
 package com.ownwn.datastore
 
 import com.ownwn.server.Request
-import com.ownwn.server.Response
 import com.ownwn.server.intercept.Intercept
 import com.ownwn.server.intercept.InterceptReciever
+import com.ownwn.server.response.WholeBodyResponse
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.RequestMapping
 import java.net.URLDecoder
@@ -20,20 +20,20 @@ class Auth {
         }
 
         if (request.cookies().isNullOrEmpty()) {
-            interceptor.closeWithResponse(Response.softRedirect(loginPath))
+            interceptor.closeWithResponse(WholeBodyResponse.softRedirect(loginPath))
             return
         }
 
         val cookieValue = DataStoreApplication.getEnv(cookieName) ?: run {
             System.err.println("Missing cookie value!")
-            interceptor.closeWithResponse(Response.softRedirect(loginPath))
+            interceptor.closeWithResponse(WholeBodyResponse.softRedirect(loginPath))
             return
         }
 
 
         val authenticated = request.cookies?.get(cookieName)?.let { URLDecoder.decode(it, StandardCharsets.UTF_8) } == cookieValue
         if (!authenticated) {
-            interceptor.closeWithResponse(Response.softRedirect(loginPath))
+            interceptor.closeWithResponse(WholeBodyResponse.softRedirect(loginPath))
             return
         }
     }

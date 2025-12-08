@@ -2,7 +2,9 @@ package com.ownwn.datastore
 
 import com.ownwn.server.Handle
 import com.ownwn.server.Request
-import com.ownwn.server.Response
+import com.ownwn.server.response.Response
+import com.ownwn.server.response.TemplateResponse
+import com.ownwn.server.response.WholeBodyResponse
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -16,7 +18,7 @@ class Controller {
 
     @Handle("entries")
     fun entries(request: Request): Response {
-        return Response.ok(Database.getEntries().toString())
+        return WholeBodyResponse.ok(Database.getEntries().toString())
     }
 
     @PostMapping("/submit", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
@@ -68,27 +70,6 @@ class Controller {
 
     @Handle("clearcookie")
     fun clearCookies(request: Request): Response {
-        val html = """
-            <!DOCTYPE html>
-            <html>
-            <body>
-            <button style="width: 300px; height: 100px;" type="button" onclick="clearCookie()">clear cookies</button>
-            </body>
-            
-            <script>
-            function clearCookie() {
-                document.cookie = "encodedEncryption=;"
-            }
-            
-            
-            </script>
-            
-            </html>
-            
-            
-            
-        """.trimIndent()
-
-        return Response.ok(html)
+        return TemplateResponse.of("clearcookie");
     }
 }
