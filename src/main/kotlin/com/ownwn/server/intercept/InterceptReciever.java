@@ -1,6 +1,6 @@
 package com.ownwn.server.intercept;
 
-import com.ownwn.server.Response;
+import com.ownwn.server.response.Response;
 
 public class InterceptReciever {
     private Response response;
