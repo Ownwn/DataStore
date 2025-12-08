@@ -6,6 +6,7 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,6 +17,7 @@ public class Server {
     private final Map<String, RequestHandler> handleMethods = new HashMap<>();
     private final List<Interceptor> interceptMethods = new ArrayList<>();
     private final String friendlyAddress;
+    private final TemplateManager templateManager = new TemplateManager();
 
     public static void create(String hostName, int port) {
         try {
@@ -56,6 +58,7 @@ public class Server {
             interceptor.handle(request, rec);
 
             if (rec.isClosed()) {
+                exchange.getResponseHeaders().putAll(rec.getResponse().headers());
                 exchange.sendResponseHeaders(rec.getResponse().status(), rec.getResponse().body().length);
                 exchange.getResponseBody().write(rec.getResponse().body());
                 exchange.getResponseBody().close();
@@ -66,23 +69,58 @@ public class Server {
         String url = cleanUrl(exchange.getRequestURI().getPath());
         RequestHandler handler = handleMethods.get(url);
 
-        if (handler == null) {
-            exchange.sendResponseHeaders(404, "404".length());
-            exchange.getResponseBody().write("404".getBytes());
+        if (handler != null) {
+            handleRawRequest(handler, exchange, request);
+
+        } else if (templateManager.hasTemplate(url)) {
+            handleTemplate(url, exchange, request);
+
+        } else {
+            handle404(exchange);
+        }
+    }
+
+    private void handle404(HttpExchange exchange) throws IOException {
+        if (templateManager.hasTemplate(TemplateManager.errorTemplate)) {
+            try (InputStream templateStream = templateManager.getTemplateContent(TemplateManager.errorTemplate)) {
+                exchange.sendResponseHeaders(404, 0); // 0 should be fine, server will keep reading
+                templateStream.transferTo(exchange.getResponseBody());
+                exchange.getResponseBody().close();
+            }
+        }
+
+        exchange.sendResponseHeaders(404, "404".length());
+        exchange.getResponseBody().write("404".getBytes());
+        exchange.getResponseBody().close();
+    }
+
+    private void handleRawRequest(RequestHandler handler, HttpExchange exchange, Request request) throws IOException {
+        if (!handler.method().name().equals(exchange.getRequestMethod())) {
+            exchange.sendResponseHeaders(405, 0);
             exchange.getResponseBody().close();
             return;
         }
 
-        if (!handler.method().name().equals(exchange.getRequestMethod())) {
-            exchange.sendResponseHeaders(405, 0);
-            exchange.getResponseBody().close();
-        }
-
         Response response = handler.handle(request);
 
+        exchange.getResponseHeaders().putAll(response.headers());
         exchange.sendResponseHeaders(response.status(), response.body().length);
         exchange.getResponseBody().write(response.body());
         exchange.getResponseBody().close();
+    }
+
+    private void handleTemplate(String url, HttpExchange exchange, Request request) throws IOException {
+        if (!exchange.getRequestMethod().equals("GET")) {
+            exchange.sendResponseHeaders(405, 0);
+            exchange.getResponseBody().close();
+            return;
+        }
+
+        try (InputStream templateStream = templateManager.getTemplateContent(url)) {
+            exchange.sendResponseHeaders(200, 0); // 0 should be fine, server will keep reading
+            templateStream.transferTo(exchange.getResponseBody());
+            exchange.getResponseBody().close();
+        }
     }
 
     private String cleanUrl(String url) {
