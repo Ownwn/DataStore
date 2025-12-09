@@ -11,7 +11,7 @@ import java.net.URL;
 import java.util.*;
 
 public class AnnotationFinder {
-    private static Map<Class<?>, Object> instances = new HashMap<>();
+    private static final Map<Class<?>, Object> instances = new HashMap<>();
     private AnnotationFinder() {}
 
     static void loadAllAnnotatedMethods(String packageName, Map<String, RequestHandler> handleMethods, List<Interceptor> interceptMethods) {
@@ -96,7 +96,7 @@ public class AnnotationFinder {
         for (Method method : methods) {
             Handle annotation = method.getAnnotation(Handle.class);
             RequestHandler handler = RequestHandler.from(method, annotation, instance);
-            String path = annotation.value();
+            String path = Server.cleanUrl(annotation.value());
 
             if (handlerMap.put(path, handler) != null) {
                 throw new RuntimeException("Duplicate path: " + path);

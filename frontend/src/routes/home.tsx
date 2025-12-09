@@ -134,7 +134,7 @@ export function Home() {
 
     async function getDownloadUrl(created: string, fileNameBase64: string) {
         try {
-            const res = await fetch("downloadfile" + "?created=" + created + "&filename=" + fileNameBase64)
+            const res = await fetch("api/downloadfile" + "?created=" + created + "&filename=" + fileNameBase64)
 
             const bytes = await res.bytes()
 
@@ -157,7 +157,7 @@ export function Home() {
         if (!confirm("Confirm deletion?")) {
             return
         }
-        const response = await fetch("delete" + "?created=" + String(entry.createdAt) + "&id=" + entry.id, {
+        const response = await fetch("api/delete" + "?created=" + String(entry.createdAt) + "&id=" + entry.id, {
             method: "DELETE"
         })
         if (!response.ok) {
@@ -185,7 +185,7 @@ export function Home() {
 
     async function fetchItems() {
         try {
-            const res = await fetch("entries");
+            const res = await fetch("api/entries");
             if (!res.ok) {
                 setError("Error getting entries" + res.status)
                 return
@@ -266,7 +266,7 @@ function GreetingForm({ fetchItems, setError, encryptionKey}) {
         }
 
 
-        const response = await fetch("submit", {
+        const response = await fetch("api/submit", {
             method: 'POST',
             body: body
         });

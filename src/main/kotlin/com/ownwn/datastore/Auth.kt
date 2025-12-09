@@ -4,8 +4,6 @@ import com.ownwn.server.Request
 import com.ownwn.server.intercept.Intercept
 import com.ownwn.server.intercept.InterceptReciever
 import com.ownwn.server.response.WholeBodyResponse
-import org.springframework.stereotype.Controller
-import org.springframework.web.bind.annotation.RequestMapping
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
 
@@ -36,14 +34,5 @@ class Auth {
             interceptor.closeWithResponse(WholeBodyResponse.softRedirect(loginPath))
             return
         }
-    }
-}
-
-@Controller
-class LoginPage {
-
-    @RequestMapping(loginPath)
-    fun welcome(): String {
-        return "login"
     }
 }

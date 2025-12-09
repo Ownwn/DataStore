@@ -1,24 +1,24 @@
 package com.ownwn.datastore
 
 import com.ownwn.server.Handle
+import com.ownwn.server.HttpMethod
 import com.ownwn.server.Request
 import com.ownwn.server.response.Response
 import com.ownwn.server.response.TemplateResponse
 import com.ownwn.server.response.WholeBodyResponse
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.multipart.MultipartFile
 import java.util.*
 
 
-@RestController
-@CrossOrigin
 class Controller {
 
-    @Handle("entries")
+    @Handle("api/entries")
     fun entries(request: Request): Response {
-        return WholeBodyResponse.ok(Database.getEntries().toString())
+        return WholeBodyResponse.json(Database.getEntries())
     }
 
     @PostMapping("/submit", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
@@ -45,31 +45,36 @@ class Controller {
         return ResponseEntity.ok("ok!")
     }
 
-    @DeleteMapping("/delete")
-    fun deleteEntry(@RequestParam("created") created: String?, @RequestParam("id") id: Int?): ResponseEntity<String> {
-        if (created?.toLongOrNull() == null || id == null) {
-            return ResponseEntity.badRequest().build()
+    @Handle("/delete", method = HttpMethod.DELETE)
+    fun deleteEntry(request: Request): Response {
+        val created = request.queryParameters()!!["created"]?.toLongOrNull()
+        val id = request.queryParameters()!!["id"]?.toIntOrNull()
+
+        if (created == null || id == null) {
+            return WholeBodyResponse.badRequest()
         }
-        if (Database.deleteEntry(created.toLong(), id)) {
-            return ResponseEntity.ok().build()
+        if (Database.deleteEntry(created, id)) {
+            return WholeBodyResponse.ok()
         }
-        return ResponseEntity.notFound().build()
+        return WholeBodyResponse.notFound
     }
 
-    @GetMapping("/downloadfile")
-    fun downloadFile(@RequestParam("created") created: String?, @RequestParam("filename") fileNameBase64: String?): ResponseEntity<ByteArray> {
-        if (created?.toLongOrNull() == null || fileNameBase64 == null) {
-            return ResponseEntity.badRequest().build()
+    @Handle("/downloadfile")
+    fun downloadFile(request: Request): Response {
+        val created = request.queryParameters()["created"]?.toLongOrNull()
+        val fileNameBase64 = request.queryParameters()["filename"]
+        if (created == null || fileNameBase64 == null) {
+            return WholeBodyResponse.badRequest()
         }
 
-        val fileBytes = Database.getFileBytes(created.toLong(), Base64.getDecoder().decode(fileNameBase64).decodeToString())
-            ?: return ResponseEntity.notFound().build()
+        val fileBytes = Database.getFileBytes(created, Base64.getDecoder().decode(fileNameBase64).decodeToString())
+            ?: return WholeBodyResponse.notFound
 
-        return ResponseEntity.ok(fileBytes)
+        return WholeBodyResponse.ok(fileBytes)
     }
 
     @Handle("clearcookie")
     fun clearCookies(request: Request): Response {
-        return TemplateResponse.of("clearcookie");
+        return TemplateResponse.of("clearcookie")
     }
 }

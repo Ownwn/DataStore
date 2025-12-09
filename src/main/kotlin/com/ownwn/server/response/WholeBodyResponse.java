@@ -1,5 +1,6 @@
 package com.ownwn.server.response;
 
+import com.ownwn.server.JsonConvertible;
 import com.sun.net.httpserver.Headers;
 import kotlin.text.Charsets;
 
@@ -7,6 +8,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class WholeBodyResponse extends Response {
     private final byte[] body;
@@ -53,6 +55,15 @@ public class WholeBodyResponse extends Response {
         return WholeBodyResponse.of(200, body);
     }
 
+    public static <T extends JsonConvertible> WholeBodyResponse json(List<T> list) {
+        String json = list.stream().map(JsonConvertible::toJson).collect(Collectors.joining(", ", "[", "]"));
+        return WholeBodyResponse.ok(json);
+    }
+
+    public static WholeBodyResponse ok() {
+        return WholeBodyResponse.of(200, "");
+    }
+
     public static WholeBodyResponse of(int status, byte[] body) {
         return WholeBodyResponse.of(status, body, Map.of());
     }
@@ -63,5 +74,9 @@ public class WholeBodyResponse extends Response {
 
     public static WholeBodyResponse softRedirect(String path) {
         return WholeBodyResponse.of(302, new byte[]{}, Map.of("Location", path));
+    }
+
+    public static WholeBodyResponse badRequest() {
+        return WholeBodyResponse.of(400, "");
     }
 }

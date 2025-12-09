@@ -99,7 +99,7 @@ public class Server {
 
 
 
-    private String cleanUrl(String url) {
+    public static String cleanUrl(String url) {
         if (url.startsWith("/")) url = url.substring(1);
         if (url.endsWith("/")) url = url.substring(0, url.length() - 1);
         return url;

@@ -2,11 +2,9 @@ package com.ownwn.datastore
 
 import com.ownwn.datastore.Env2.loadEnv
 import com.ownwn.server.Server
-import org.springframework.boot.autoconfigure.SpringBootApplication
 import java.nio.file.Files
 import java.nio.file.Path
 
-@SpringBootApplication
 class DataStoreApplication {
     companion object {
         fun getEnv(key: String): String? {

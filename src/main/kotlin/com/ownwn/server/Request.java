@@ -10,12 +10,27 @@ import java.util.HashMap;
 import java.util.Map;
 
 public record Request(InetSocketAddress remoteAddress, InputStream requestBody, Headers requestHeaders,
-                      OutputStream responseBody, String path, Map<String, String> cookies) {
+                      OutputStream responseBody, String path, Map<String, String> cookies, Map<String, String> queryParameters) {
 
     public static Request createFromExchange(HttpExchange exchange) {
         String URI = exchange.getRequestURI().getPath().replaceFirst("/$", "");
         Map<String, String> cookies = parseCookies(exchange.getRequestHeaders());
-        return new Request(exchange.getRemoteAddress(), exchange.getRequestBody(), exchange.getRequestHeaders(), exchange.getResponseBody(), URI, cookies);
+        Map<String, String> queries = parseQueries(exchange.getRequestURI().getQuery());
+        return new Request(exchange.getRemoteAddress(), exchange.getRequestBody(), exchange.getRequestHeaders(), exchange.getResponseBody(), URI, cookies, queries);
+    }
+
+    private static Map<String, String> parseQueries(String query) {
+        if (query == null || query.isBlank()) return Map.of();
+
+        Map<String, String> queries = new HashMap<>();
+        String[] parts = query.split("&");
+        for (String pair : parts) {
+            String[] keyValue = pair.split("=");
+            if (keyValue.length != 2) continue;
+            if (keyValue[1].isBlank() || keyValue[0].isBlank()) continue;
+            queries.put(keyValue[0], keyValue[1]);
+        }
+        return queries;
     }
 
     private static Map<String, String> parseCookies(Headers headers) {
