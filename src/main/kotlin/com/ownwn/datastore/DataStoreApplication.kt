@@ -15,7 +15,7 @@ class DataStoreApplication {
 
 fun main() {
     loadEnv()
-    Server.create("127.0.0.1", DataStoreApplication.getEnv("PORT")!!.toInt())
+    Server.create("127.0.0.1", "/api", DataStoreApplication.getEnv("PORT")!!.toInt())
 }
 
 private object Env2 {

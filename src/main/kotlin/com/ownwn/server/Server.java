@@ -18,24 +18,31 @@ public class Server {
     private final Map<String, RequestHandler> handleMethods = new HashMap<>();
     private final List<Interceptor> interceptMethods = new ArrayList<>();
     private final String friendlyAddress;
+    private final String basePath;
 
     public static void create(String hostName, int port) {
+        create(hostName, "/", port);
+    }
+
+    public static void create(String hostName, String basePath, int port) {
         try {
             String packageName = StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE)
                     .getCallerClass()
                     .getPackageName();
-            Server s = new Server(packageName, hostName, port);
-            System.out.println("Server started at " + s.friendlyAddress);
+            Server s = new Server(packageName, hostName, basePath, port);
+            System.out.println("Server started at " + s.friendlyAddress + basePath);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private Server(String packageName, String hostName, int port) throws IOException {
+
+    private Server(String packageName, String hostName, String basePath, int port) throws IOException {
         HttpServer server = HttpServer.create(new InetSocketAddress(hostName, port), 0);
         AnnotationFinder.loadAllAnnotatedMethods(packageName, handleMethods, interceptMethods);
+        this.basePath = basePath;
 
-        server.createContext("/").setHandler(exchange -> {
+        server.createContext(basePath).setHandler(exchange -> {
             try {
                 handle(exchange);
             } catch (Exception e) {
@@ -51,7 +58,7 @@ public class Server {
 
     private void handle(HttpExchange exchange) throws IOException {
 
-        Request request = Request.createFromExchange(exchange);
+        Request request = Request.createFromExchange(exchange, basePath);
 
         for (Interceptor interceptor : interceptMethods) {
             InterceptReciever rec = new InterceptReciever();
@@ -68,7 +75,7 @@ public class Server {
             }
         }
 
-        String url = cleanUrl(exchange.getRequestURI().getPath());
+        String url = cleanUrl(request.path());
         RequestHandler handler = handleMethods.get(url);
 
         if (handler != null) {

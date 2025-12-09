@@ -12,8 +12,13 @@ import java.util.Map;
 public record Request(InetSocketAddress remoteAddress, InputStream requestBody, Headers requestHeaders,
                       OutputStream responseBody, String path, Map<String, String> cookies, Map<String, String> queryParameters) {
 
-    public static Request createFromExchange(HttpExchange exchange) {
-        String URI = exchange.getRequestURI().getPath().replaceFirst("/$", "");
+    public static Request createFromExchange(HttpExchange exchange, String basePath) {
+        String path = exchange.getRequestURI().getPath();
+        if (!path.startsWith(basePath)) {
+            throw new RuntimeException("URI did not start with base path!");
+        }
+
+        String URI = path.substring(basePath.length()).replaceFirst("/$", "");
         Map<String, String> cookies = parseCookies(exchange.getRequestHeaders());
         Map<String, String> queries = parseQueries(exchange.getRequestURI().getQuery());
         return new Request(exchange.getRemoteAddress(), exchange.getRequestBody(), exchange.getRequestHeaders(), exchange.getResponseBody(), URI, cookies, queries);

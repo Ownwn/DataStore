@@ -16,7 +16,7 @@ import java.util.*
 
 class Controller {
 
-    @Handle("api/entries")
+    @Handle("entries")
     fun entries(request: Request): Response {
         return WholeBodyResponse.json(Database.getEntries())
     }
