@@ -23,7 +23,7 @@ class Controller {
         val files = formData["file"]
 
         if (text?.bytes()?.isNotEmpty() != true && formData["file"].isNullOrEmpty()) {
-            return WholeBodyResponse.badRequest();
+            return WholeBodyResponse.badRequest("missing attachments");
         }
 
         text?.bytes()?.let { Database.addEntry(it) }
@@ -50,7 +50,7 @@ class Controller {
         val id = request.queryParameters()!!["id"]?.toIntOrNull()
 
         if (created == null || id == null) {
-            return WholeBodyResponse.badRequest()
+            return WholeBodyResponse.badRequest("missing params")
         }
         if (Database.deleteEntry(created, id)) {
             return WholeBodyResponse.ok()
@@ -63,7 +63,7 @@ class Controller {
         val created = request.queryParameters()["created"]?.toLongOrNull()
         val fileNameBase64 = request.queryParameters()["filename"]
         if (created == null || fileNameBase64 == null) {
-            return WholeBodyResponse.badRequest()
+            return WholeBodyResponse.badRequest("missing filename")
         }
 
         val fileBytes = Database.getFileBytes(created, Base64.getDecoder().decode(fileNameBase64).decodeToString())

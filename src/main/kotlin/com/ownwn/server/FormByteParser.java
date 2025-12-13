@@ -2,18 +2,14 @@ package com.ownwn.server;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class FormByteParser {
-    private static final int LINE_FEED = 10;
     private static final Pattern dispositionPattern = Pattern.compile("Content-Disposition: form-data; name=\"([^\"]+)\"(?:; filename=\"([^\"]+)\")?");
 
-    private final InputStream body;
+    private final byte[] bytes;
     private final String boundary;
     private int boundaryIndex = 0;
     private List<Chunk> chunks;
@@ -26,12 +22,15 @@ public class FormByteParser {
     }
 
 
-    int current;
     public FormByteParser(InputStream body, String boundary) {
-        this.body = body;
+        try {
+            this.bytes = body.readAllBytes();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         this.boundary = boundary;
 
-        List<List<Byte>> rawParts;
+        List<byte[]> rawParts;
         try {
             rawParts = readParts();
         } catch (IOException e) {
@@ -39,24 +38,27 @@ public class FormByteParser {
         }
 
         chunks = rawParts.stream()
-                .map(l -> l.subList(0, l.size()-boundary.length()))
-                .filter(l -> !l.isEmpty())
-                .map(l ->{
-                    int index = indexOf(l, new byte[]{13, 10,13,10}); // CRLF CRLF
+                .filter((byte[] arr) -> arr.length - boundary.length() > 0)
+                .map(arr ->{
+
+                    int index = indexOf(arr, new byte[]{13, 10,13,10}); // CRLF CRLF
                     if (index == -1) {
                         return null;
                     }
-                    return new Chunk(new String(makeArray(l.subList(0, index))), makeArray(l.subList(index+4, l.size()-2)));
+                    return new Chunk(new String(Arrays.copyOfRange(arr, 0, index)), Arrays.copyOfRange(arr, index+4, arr.length-2-boundary.length()));
                 } )
                 .toList();
+        System.out.println();
     }
 
     public Map<String, List<FormAttachment>> getTypeGroups() {
         return chunks.stream().collect(HashMap::new, (map, chunk) -> {
 
-            String[] contentHeaders = chunk.disposition.split("\n");
+            String[] contentHeaders = chunk.disposition.trim().split("\r\n");
             Matcher m = dispositionPattern.matcher(contentHeaders[0]);
-            if (!m.find()) return; // malformed request
+            if (!m.find()) {
+                return; // malformed request
+            }
 
             FormAttachment attachment = new FormAttachment(m.group(1), m.groupCount() >= 2 ? m.group(2) : "text", chunk.bytes());
 
@@ -65,11 +67,11 @@ public class FormByteParser {
         }, (p1, p2) -> {throw new Error("cant parallel");});
     }
 
-    private int indexOf(List<Byte> haystack, byte[] needle) {
-        for (int i = 0; i <= haystack.size()-needle.length; i++) {
+    private int indexOf(byte[] haystack, byte[] needle) {
+        for (int i = 0; i <= haystack.length-needle.length; i++) {
             boolean f = true;
             for (int k = 0; k < needle.length; k++) {
-                if (haystack.get(i+k) != needle[k]) {
+                if (haystack[i+k] != needle[k]) {
                     f = false;
                     break;
                 }
@@ -80,27 +82,30 @@ public class FormByteParser {
         return -1;
     }
 
-    public List<List<Byte>> readParts() throws IOException {
-        List<List<Byte>> parts = new ArrayList<>();
-        List<Byte> part = new ArrayList<>(16384); // todo check ram usage
+    public List<byte[]> readParts() throws IOException {
+        List<Integer> endIndices = new ArrayList<>(32);
 
-        while ((current = body.read()) != -1) {
+        for (int i = 0; i < bytes.length; i++) {
             if (boundaryIndex >= boundary.length()) {
-                if (!part.isEmpty()) {
-                    parts.add(part);
-                    part = new ArrayList<>();
-                }
+                endIndices.add(i);
 
                 boundaryIndex = 0;
-                body.read();
+                i++;
                 continue;
             }
-            if (current != boundary.charAt(boundaryIndex++)) {
+            if (bytes[i] != boundary.charAt(boundaryIndex++)) {
                 boundaryIndex = 0;
             }
-            part.add((byte) current);
+        }
+        List<byte[]> parts = new ArrayList<>(endIndices.size());
+
+        int prev = 0;
+        for (int end : endIndices) {
+            parts.add(Arrays.copyOfRange(bytes, prev, end));
+            prev = end;
 
         }
+
         return parts;
     }
 
@@ -110,19 +115,5 @@ public class FormByteParser {
             res[i] = bytes.get(i);
         }
         return res;
-    }
-
-    public void skipBoundary() throws IOException {
-        body.skip(boundary.length());
-        body.read();
-    }
-
-    public String[] readContentDisposition() throws IOException {
-        StringBuilder disposition = new StringBuilder();
-        while ((current = body.read()) != LINE_FEED) {
-            disposition.append(current);
-        }
-
-        return disposition.substring(32).split("; ");
     }
 }
