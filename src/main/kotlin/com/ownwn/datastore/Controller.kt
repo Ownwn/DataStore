@@ -6,11 +6,6 @@ import com.ownwn.server.Request
 import com.ownwn.server.response.Response
 import com.ownwn.server.response.TemplateResponse
 import com.ownwn.server.response.WholeBodyResponse
-import org.springframework.http.MediaType
-import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestPart
-import org.springframework.web.multipart.MultipartFile
 import java.util.*
 
 
@@ -21,28 +16,32 @@ class Controller {
         return WholeBodyResponse.json(Database.getEntries())
     }
 
-    @PostMapping("/submit", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
-    fun submit(@RequestPart("file", required = false) files: List<MultipartFile?>?, @RequestPart("text", required = false) text: String?): ResponseEntity<String> {
-        if (files == null && text.isNullOrBlank()) return ResponseEntity.badRequest().body("missing content")
-        if (text != null && text.isNotBlank()) {
-            Database.addEntry(text)
+    @Handle("submit", method = HttpMethod.POST)
+    fun submit(request: Request): Response {
+        val formData = request.loadFormData()!!;
+        val text = formData["text"]?.getOrNull(0)
+        val files = formData["file"]
+
+        if (text?.bytes()?.isNotEmpty() != true && formData["file"].isNullOrEmpty()) {
+            return WholeBodyResponse.badRequest();
         }
 
-        if (files.isNullOrEmpty()) {
-            return ResponseEntity.ok().build()
-        }
+        text?.bytes()?.let { Database.addEntry(it) }
 
-        for (file in files) {
-            if (file == null || file.isEmpty) continue
+        if (!files.isNullOrEmpty()) {
+            for (file in files) {
+                if (file == null || file.bytes().isEmpty()) continue
 
-            try {
-                Database.addEntry(file.bytes, file.originalFilename ?: "unknown name")
-            } catch (e: Exception) {
-                return ResponseEntity.badRequest().body(e.message)
+                try {
+                    Database.addEntry(file.bytes(), file.fileName())
+                } catch (e: Exception) {
+                    return WholeBodyResponse.badRequest(e.message)
+                }
             }
         }
 
-        return ResponseEntity.ok("ok!")
+
+        return WholeBodyResponse.ok()
     }
 
     @Handle("/delete", method = HttpMethod.DELETE)

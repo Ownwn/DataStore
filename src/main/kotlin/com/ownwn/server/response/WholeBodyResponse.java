@@ -79,4 +79,8 @@ public class WholeBodyResponse extends Response {
     public static WholeBodyResponse badRequest() {
         return WholeBodyResponse.of(400, "");
     }
+
+    public static WholeBodyResponse badRequest(String body) {
+        return WholeBodyResponse.of(400, body);
+    }
 }

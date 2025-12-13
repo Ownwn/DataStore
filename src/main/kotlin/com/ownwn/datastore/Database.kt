@@ -11,13 +11,13 @@ object Database {
         if (!dataRoot.exists()) dataRoot.mkdir()
     }
 
-    fun addEntry(content: String) {
+    fun addEntry(content: ByteArray) {
         dataRoot.mkdir()
 
         val file = dataRoot.resolve(createFileName(null))
 
         if (file.exists()) throw RuntimeException("File $file already exists!")
-        file.writeText(content)
+        file.outputStream().write(content)
 
     }
 

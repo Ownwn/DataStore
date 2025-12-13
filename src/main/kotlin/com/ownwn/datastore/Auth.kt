@@ -29,7 +29,7 @@ class Auth {
         }
 
 
-        val authenticated = request.cookies?.get(cookieName)?.let { URLDecoder.decode(it, StandardCharsets.UTF_8) } == cookieValue
+        val authenticated = request.cookies()?.get(cookieName)?.let { URLDecoder.decode(it, StandardCharsets.UTF_8) } == cookieValue
         if (!authenticated) {
             interceptor.closeWithResponse(WholeBodyResponse.softRedirect(loginPath))
             return
