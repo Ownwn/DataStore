@@ -13,7 +13,7 @@ export function Home() {
 
     ]);
     // @ts-ignore
-    let [error, setError] = useState("");
+    let [status, setStatus] = useState("");
     let [secondsSinceUpdate, setSecondsSinceUpdate] = useState(0)
     let [encryptionKey, setEncryptionKey] = useState("")
 
@@ -36,7 +36,7 @@ export function Home() {
 
     useEffect(() => {
         if (crypto.subtle === undefined) {
-            setError("Crypto not available! Are you using HTTPS?")
+            setStatus("Crypto not available! Are you using HTTPS?")
         }
 
         const encryption = document.cookie
@@ -51,14 +51,14 @@ export function Home() {
     let inner;
     if (encryptionKey.length === 0) {
         inner = <div className={styles.mainFlex + " " + styles.padding}>
-            <GreetingForm fetchItems={fetchItems} setError={setError} encryptionKey={encryptionKey}/>
+            <GreetingForm fetchItems={fetchItems} setStatus={setStatus} encryptionKey={encryptionKey}/>
             <EncryptionStatus encryptionKey={encryptionKey} setEncryptionKey={setEncryptionKey}/>
         </div>
     } else {
         inner = <>
             <EncryptionStatus encryptionKey={encryptionKey} setEncryptionKey={setEncryptionKey}/>
         <div className={styles.mainFlex}>
-            <GreetingForm fetchItems={fetchItems} setError={setError} encryptionKey={encryptionKey}/>
+            <GreetingForm fetchItems={fetchItems} setStatus={setStatus} encryptionKey={encryptionKey}/>
         </div>
 
         </>
@@ -68,7 +68,7 @@ export function Home() {
 
 
         <h2>Last Update: {secondsSinceUpdate + "s"}</h2>
-        <h2 className={styles.error}>{error}</h2>
+        <h2 className={styles.error}>{status}</h2>
         <br/>
         <ol>
             {items.map((item: Entry, index) => (
@@ -144,7 +144,7 @@ export function Home() {
             return URL.createObjectURL(blob)
         } catch (e: any) {
             console.error(e)
-            setError(e.message)
+            setStatus(e.message)
         }
 
     }
@@ -161,7 +161,7 @@ export function Home() {
             method: "DELETE"
         })
         if (!response.ok) {
-            setError("Error deleting item " + entry)
+            setStatus("Error deleting item " + entry)
             return
         }
         await fetchItems()
@@ -187,14 +187,14 @@ export function Home() {
         try {
             const res = await fetch("api/entries");
             if (!res.ok) {
-                setError("Error getting entries" + res.status)
+                setStatus("Error getting entries" + res.status)
                 return
             }
             const entries = await res.json();
             setSecondsSinceUpdate(0);
 
             if (!entries || !encryptionKey) {
-                setError("fetch was ok but error getting entries anyway.")
+                setStatus("fetch was ok but error getting entries anyway.")
                 return
             }
 
@@ -219,7 +219,7 @@ export function Home() {
 
 
         } catch (err) {
-            setError("Error fetching items. Check the console")
+            setStatus("Error fetching items. Check the console")
             console.log(err);
         }
     }
@@ -233,7 +233,7 @@ function trimToFit(str: string, len: number) {
 }
 
 // @ts-ignore
-function GreetingForm({ fetchItems, setError, encryptionKey}) {
+function GreetingForm({ fetchItems, setStatus, encryptionKey}) {
     const handleSubmit = async (e: any) => {
         e.preventDefault();
         const formData = new FormData(e.target);
@@ -250,16 +250,24 @@ function GreetingForm({ fetchItems, setError, encryptionKey}) {
         const body = new FormData()
 
         if (text) {
-            body.append("text", await encryptDataToBase64(text, key))
+            body.append("text", await encryptDataToBase64(new TextEncoder().encode(text), key))
         }
 
         if (files[0].size !== 0) {
+            setStatus("Encrypting...")
             const fileArrays = await Promise.all(
                 files.map(async (f) => new Uint8Array(await f.arrayBuffer()))
             )
 
             for (let i = 0; i < files.length; i++) {
-                const buf = await encryptData(fileArrays[i], key)
+                let buf;
+                try {
+                    buf = await encryptData(fileArrays[i], key)
+                } catch (e: any) {
+                    setStatus(e.message)
+                    throw e;
+                    return
+                }
                 const blob = new Blob([buf], {type: "application/octet-stream"})
                 body.append("file", blob, files[i].name)
             }
@@ -275,9 +283,10 @@ function GreetingForm({ fetchItems, setError, encryptionKey}) {
 
         if (!response.ok) {
             console.log("not ok " + response.status)
-            setError(await response.text() + " " + String(response.status));
+            setStatus(await response.text() + " " + String(response.status));
             return;
         }
+        setStatus("")
 
         const result = await response.text();
         console.log(result);
@@ -342,28 +351,14 @@ async function getEncryptionKey(password: string): Promise<CryptoKey> {
             hash: "SHA-256"
         },
         keyMaterial,
-        { name: "AES-GCM", length: 256 },
+        { name: "AES-CTR", length: 256 },
         false,
         ["encrypt", "decrypt"]
     );
 }
 
-async function decryptData(encryptedBuffer: ArrayBuffer, key: CryptoKey): Promise<ArrayBuffer> {
-    const encryptedArray = new Uint8Array(encryptedBuffer);
-
-    const iv = encryptedArray.slice(0, 12);
-    const encryptedData = encryptedArray.slice(12);
-
-    return await crypto.subtle.decrypt(
-        { name: "AES-GCM", iv },
-        key,
-        encryptedData
-    );
-}
-
-
-async function encryptDataToBase64(data: string | ArrayBuffer, key: CryptoKey): Promise<string> {
-    const arrayBuffer = await encryptData(data, key);
+async function encryptDataToBase64(data: ArrayBuffer, key: CryptoKey): Promise<string> {
+    const arrayBuffer = await encryptData(data, key)
     const uint8Array = new Uint8Array(arrayBuffer);
 
     let string = ""
@@ -375,20 +370,65 @@ async function encryptDataToBase64(data: string | ArrayBuffer, key: CryptoKey): 
     return btoa(string);
 }
 
-async function encryptData(data: string | ArrayBuffer, key: CryptoKey): Promise<ArrayBuffer> {
-    const encoder = new TextEncoder();
-    const dataBuffer = typeof data === "string" ? encoder.encode(data) : data;
+async function decryptData(encryptedBuffer: ArrayBuffer, key: CryptoKey): Promise<ArrayBuffer> {
+    const encryptedArray = new Uint8Array(encryptedBuffer);
 
-    const iv = crypto.getRandomValues(new Uint8Array(12));
-    const encryptedData = await crypto.subtle.encrypt(
-        { name: "AES-GCM", iv },
-        key,
-        dataBuffer
-    );
+    const iv = encryptedArray.slice(0, 16);
+    const data = encryptedArray.slice(16);
 
-    const result = new Uint8Array(iv.length + encryptedData.byteLength);
-    result.set(iv, 0);
-    result.set(new Uint8Array(encryptedData), iv.length);
+
+    let datas = []
+
+    for (let i = 0; i < data.byteLength; i+= 128_000_000) {
+        const encryptedData = await crypto.subtle.encrypt(
+            { name: "AES-CTR", counter: iv, length: 64 },
+            key,
+            data.slice(i, i+128_000_000)
+        );
+        iv[iv.length-1]++
+
+        datas.push(encryptedData)
+    }
+
+    const result = new Uint8Array(data.byteLength)
+    let prev = 0
+
+    for (const chunk of datas) {
+        result.set(new Uint8Array(chunk), prev)
+        prev+= chunk.byteLength
+    }
+
+    return result.buffer;
+}
+
+async function encryptData(data: ArrayBuffer, key: CryptoKey): Promise<ArrayBuffer> {
+    const iv = crypto.getRandomValues(new Uint8Array(16));
+
+    // const numChunks = Math.floor(1 + data.byteLength / 128_000_000) // 1MB per chunk
+
+    let datas = []
+
+    const staleIV = new Uint8Array(iv);
+
+    for (let i = 0; i < data.byteLength; i+= 128_000_000) {
+        const encryptedData = await crypto.subtle.encrypt(
+            { name: "AES-CTR", counter: iv, length: 64 },
+            key,
+            data.slice(i, i+128_000_000)
+        );
+        iv[iv.length-1]++
+
+        datas.push(encryptedData)
+    }
+
+    const result = new Uint8Array(iv.length + data.byteLength)
+    result.set(staleIV, 0);
+    let prev = iv.length
+
+    for (const chunk of datas) {
+        result.set(new Uint8Array(chunk), prev)
+        prev+= chunk.byteLength
+    }
 
     return result.buffer;
 }
