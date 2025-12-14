@@ -1,5 +1,6 @@
 package com.ownwn.datastore
 
+import com.ownwn.server.JsonConvertible
 import java.io.File
 import java.util.*
 
@@ -10,13 +11,13 @@ object Database {
         if (!dataRoot.exists()) dataRoot.mkdir()
     }
 
-    fun addEntry(content: String) {
+    fun addEntry(content: ByteArray) {
         dataRoot.mkdir()
 
         val file = dataRoot.resolve(createFileName(null))
 
         if (file.exists()) throw RuntimeException("File $file already exists!")
-        file.writeText(content)
+        file.outputStream().write(content)
 
     }
 
@@ -63,7 +64,11 @@ object Database {
 }
 
 @ConsistentCopyVisibility
-data class Entry private constructor(val name: String, val plainText: Boolean, val content: String, val createdAt: Long, val id: Int) {
+data class Entry private constructor(val name: String, val plainText: Boolean, val content: String, val createdAt: Long, val id: Int) : JsonConvertible {
+    override fun toJson(): String {
+        return "{\"name\": \"$name\", \"plainText\": $plainText, \"content\": \"$content\", \"createdAt\": \"$createdAt\", \"id\": $id}"
+    }
+
     companion object {
         fun createEntry(f: File): Entry? {
             if (!f.name.startsWith("TEXT") && !f.name.startsWith("FILE")) {

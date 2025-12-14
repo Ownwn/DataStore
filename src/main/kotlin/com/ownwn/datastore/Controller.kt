@@ -1,87 +1,78 @@
 package com.ownwn.datastore
 
-import org.springframework.http.MediaType
-import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.*
-import org.springframework.web.multipart.MultipartFile
+import com.ownwn.server.Handle
+import com.ownwn.server.HttpMethod
+import com.ownwn.server.Request
+import com.ownwn.server.response.Response
+import com.ownwn.server.response.TemplateResponse
+import com.ownwn.server.response.WholeBodyResponse
 import java.util.*
 
 
-@RestController
-@CrossOrigin
 class Controller {
-    @GetMapping("/entries")
-    fun entries(): ResponseEntity<List<Entry>> {
-        return ResponseEntity.ok(Database.getEntries())
+    @Handle("entries")
+    fun entries(request: Request): Response {
+        return WholeBodyResponse.json(Database.getEntries())
     }
 
-    @PostMapping("/submit", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
-    fun submit(@RequestPart("file", required = false) files: List<MultipartFile?>?, @RequestPart("text", required = false) text: String?): ResponseEntity<String> {
-        if (files == null && text.isNullOrBlank()) return ResponseEntity.badRequest().body("missing content")
-        if (text != null && text.isNotBlank()) {
-            Database.addEntry(text)
+    @Handle("submit", method = HttpMethod.POST)
+    fun submit(request: Request): Response {
+        val formData = request.loadFormData()!!
+        val text = formData["text"]?.getOrNull(0)
+        val files = formData["file"]
+
+        if (text?.bytes()?.isNotEmpty() != true && formData["file"].isNullOrEmpty()) {
+            return WholeBodyResponse.badRequest("missing attachments")
         }
 
-        if (files.isNullOrEmpty()) {
-            return ResponseEntity.ok().build()
-        }
+        text?.bytes()?.let { Database.addEntry(it) }
 
-        for (file in files) {
-            if (file == null || file.isEmpty) continue
+        if (!files.isNullOrEmpty()) {
+            for (file in files) {
+                if (file == null || file.bytes().isEmpty()) continue
 
-            try {
-                Database.addEntry(file.bytes, file.originalFilename ?: "unknown name")
-            } catch (e: Exception) {
-                return ResponseEntity.badRequest().body(e.message)
+                try {
+                    Database.addEntry(file.bytes(), file.fileName())
+                } catch (e: Exception) {
+                    return WholeBodyResponse.badRequest(e.message)
+                }
             }
         }
 
-        return ResponseEntity.ok("ok!")
+
+        return WholeBodyResponse.ok()
     }
 
-    @DeleteMapping("/delete")
-    fun deleteEntry(@RequestParam("created") created: String?, @RequestParam("id") id: Int?): ResponseEntity<String> {
-        if (created?.toLongOrNull() == null || id == null) {
-            return ResponseEntity.badRequest().build()
+    @Handle("/delete", method = HttpMethod.DELETE)
+    fun deleteEntry(request: Request): Response {
+        val created = request.queryParameters()!!["created"]?.toLongOrNull()
+        val id = request.queryParameters()!!["id"]?.toIntOrNull()
+
+        if (created == null || id == null) {
+            return WholeBodyResponse.badRequest("missing params")
         }
-        if (Database.deleteEntry(created.toLong(), id)) {
-            return ResponseEntity.ok().build()
+        if (Database.deleteEntry(created, id)) {
+            return WholeBodyResponse.ok()
         }
-        return ResponseEntity.notFound().build()
+        return WholeBodyResponse.notFound
     }
 
-    @GetMapping("/downloadfile")
-    fun downloadFile(@RequestParam("created") created: String?, @RequestParam("filename") fileNameBase64: String?): ResponseEntity<ByteArray> {
-        if (created?.toLongOrNull() == null || fileNameBase64 == null) {
-            return ResponseEntity.badRequest().build()
+    @Handle("/downloadfile")
+    fun downloadFile(request: Request): Response {
+        val created = request.queryParameters()["created"]?.toLongOrNull()
+        val fileNameBase64 = request.queryParameters()["filename"]
+        if (created == null || fileNameBase64 == null) {
+            return WholeBodyResponse.badRequest("missing filename")
         }
 
-        val fileBytes = Database.getFileBytes(created.toLong(), Base64.getDecoder().decode(fileNameBase64).decodeToString())
-            ?: return ResponseEntity.notFound().build()
+        val fileBytes = Database.getFileBytes(created, Base64.getDecoder().decode(fileNameBase64).decodeToString())
+            ?: return WholeBodyResponse.notFound
 
-        return ResponseEntity.ok(fileBytes)
+        return WholeBodyResponse.ok(fileBytes)
     }
-    @GetMapping("/clearcookie")
-    fun clearCookies(): String {
-        return """
-            <!DOCTYPE html>
-            <html>
-            <body>
-            <button style="width: 300px; height: 100px;" type="button" onclick="clearCookie()">clear cookies</button>
-            </body>
-            
-            <script>
-            function clearCookie() {
-                document.cookie = "encodedEncryption=;"
-            }
-            
-            
-            </script>
-            
-            </html>
-            
-            
-            
-        """.trimIndent()
+
+    @Handle("clearcookie")
+    fun clearCookies(request: Request): Response {
+        return TemplateResponse.of("clearcookie")
     }
 }
