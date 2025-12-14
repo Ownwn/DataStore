@@ -2,10 +2,10 @@ package com.ownwn.server.response;
 
 import com.ownwn.server.JsonConvertible;
 import com.sun.net.httpserver.Headers;
-import kotlin.text.Charsets;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -31,7 +31,7 @@ public class WholeBodyResponse extends Response {
     }
 
     public static WholeBodyResponse of(int status, String body) {
-        return WholeBodyResponse.of(status, body.getBytes(Charsets.UTF_8));
+        return WholeBodyResponse.of(status, body.getBytes(StandardCharsets.UTF_8));
     }
 
     public static WholeBodyResponse template(int status, String templateName, Map<String, String> headers) {
