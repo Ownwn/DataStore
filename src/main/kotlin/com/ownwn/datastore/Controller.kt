@@ -10,7 +10,6 @@ import java.util.*
 
 
 class Controller {
-
     @Handle("entries")
     fun entries(request: Request): Response {
         return WholeBodyResponse.json(Database.getEntries())
@@ -18,12 +17,12 @@ class Controller {
 
     @Handle("submit", method = HttpMethod.POST)
     fun submit(request: Request): Response {
-        val formData = request.loadFormData()!!;
+        val formData = request.loadFormData()!!
         val text = formData["text"]?.getOrNull(0)
         val files = formData["file"]
 
         if (text?.bytes()?.isNotEmpty() != true && formData["file"].isNullOrEmpty()) {
-            return WholeBodyResponse.badRequest("missing attachments");
+            return WholeBodyResponse.badRequest("missing attachments")
         }
 
         text?.bytes()?.let { Database.addEntry(it) }
