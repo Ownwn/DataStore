@@ -15,7 +15,8 @@ class DataStoreApplication {
 
 fun main() {
     loadEnv()
-    Server.create("127.0.0.1", "/api", DataStoreApplication.getEnv("PORT")!!.toInt())
+    val port = DataStoreApplication.getEnv("PORT")?.toInt() ?: throw RuntimeException("Missing port .env")
+    Server.create("127.0.0.1", "/api", port)
 }
 
 private object Env2 {
