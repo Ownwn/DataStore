@@ -1,6 +1,5 @@
 package com.ownwn.server;
 
-import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 
 import java.io.InputStream;
@@ -51,7 +50,7 @@ public class Request {
     }
 
     private String tryParseMultiPartFormBoundary() {
-        String contentType = requestHeaders.getFirst("Content-Type");
+        String contentType = requestHeaders.get("Content-Type");
         if (contentType == null) return null;
 
         Matcher formBoundaryMatcher = formBoundaryPattern.matcher(contentType);
@@ -70,9 +69,9 @@ public class Request {
         }
 
         String URI = path.substring(basePath.length()).replaceFirst("/$", "");
-        Map<String, String> cookies = parseCookies(exchange.getRequestHeaders());
+        Map<String, String> cookies = parseCookies(new Headers(exchange.getRequestHeaders()));
         Map<String, String> queries = parseQueries(exchange.getRequestURI().getQuery());
-        return new Request(exchange.getRemoteAddress(), exchange.getRequestBody(), exchange.getRequestHeaders(), exchange.getResponseBody(), URI, cookies, queries);
+        return new Request(exchange.getRemoteAddress(), exchange.getRequestBody(), new Headers(exchange.getRequestHeaders()), exchange.getResponseBody(), URI, cookies, queries);
     }
 
     private static Map<String, String> parseQueries(String query) {
@@ -90,7 +89,7 @@ public class Request {
     }
 
     private static Map<String, String> parseCookies(Headers headers) {
-        String cookieString = headers.getFirst("Cookie");
+        String cookieString = headers.get("Cookie");
         if (cookieString == null) {
             return Map.of();
         }

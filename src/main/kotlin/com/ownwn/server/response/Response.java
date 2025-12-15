@@ -1,6 +1,6 @@
 package com.ownwn.server.response;
 
-import com.sun.net.httpserver.Headers;
+import com.ownwn.server.Headers;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;

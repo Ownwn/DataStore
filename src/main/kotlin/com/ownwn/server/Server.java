@@ -65,7 +65,7 @@ public class Server {
             interceptor.handle(request, rec);
 
             if (rec.isClosed()) {
-                exchange.getResponseHeaders().putAll(rec.getResponse().headers());
+                exchange.getResponseHeaders().putAll(rec.getResponse().headers().tempBridge());
                 exchange.sendResponseHeaders(rec.getResponse().status(), rec.getResponse().bodyLength());
                 try (var body = rec.getResponse().body()) {
                     body.transferTo(exchange.getResponseBody());
@@ -96,7 +96,7 @@ public class Server {
     private void handleRawRequest(RequestHandler handler, HttpExchange exchange, Request request) throws IOException {
         Response response = handler.handle(request);
 
-        exchange.getResponseHeaders().putAll(response.headers());
+        exchange.getResponseHeaders().putAll(response.headers().tempBridge());
         exchange.sendResponseHeaders(response.status(), response.bodyLength());
         try (var body = response.body()) {
             body.transferTo(exchange.getResponseBody());

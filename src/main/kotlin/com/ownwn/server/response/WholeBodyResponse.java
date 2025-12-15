@@ -1,7 +1,7 @@
 package com.ownwn.server.response;
 
+import com.ownwn.server.Headers;
 import com.ownwn.server.JsonConvertible;
-import com.sun.net.httpserver.Headers;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -37,7 +37,7 @@ public class WholeBodyResponse extends Response {
     public static WholeBodyResponse template(int status, String templateName, Map<String, String> headers) {
         Headers resHeaders = new Headers();
         for (var header : headers.entrySet()) {
-            resHeaders.put(header.getKey(), List.of(header.getValue()));
+            resHeaders.put(header.getKey(), header.getValue());
         }
 
         return new WholeBodyResponse(status, new byte[]{}, resHeaders);
@@ -46,7 +46,7 @@ public class WholeBodyResponse extends Response {
     public static WholeBodyResponse of(int status, byte[] body, Map<String, String> headers) {
         Headers resHeaders = new Headers();
         for (var header : headers.entrySet()) {
-            resHeaders.put(header.getKey(), List.of(header.getValue()));
+            resHeaders.put(header.getKey(), header.getValue());
         }
         return new WholeBodyResponse(status, body, resHeaders);
     }
