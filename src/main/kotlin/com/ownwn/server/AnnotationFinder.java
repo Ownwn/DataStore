@@ -7,8 +7,11 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.net.JarURLConnection;
 import java.net.URL;
 import java.util.*;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
 public class AnnotationFinder {
     private static final Map<Class<?>, Object> instances = new HashMap<>();
@@ -24,8 +27,13 @@ public class AnnotationFinder {
             List<Class<?>> classes = new ArrayList<>();
             while (resources.hasMoreElements()) {
                 URL resource = resources.nextElement();
-                File directory = new File(resource.getFile());
-                classes.addAll(findClasses(directory, packageName));
+
+                if (resource.getProtocol().equals("file")) {
+                    File directory = new File(resource.getFile());
+                    classes.addAll(findClasses(directory, packageName));
+                } else if (resource.getProtocol().equals("jar")) {
+                    classes.addAll(findClassesInJar(resource, path, packageName));
+                }
             }
 
             classes.forEach(clazz -> loadMethods(clazz, handleMethods, interceptMethods));
@@ -37,6 +45,28 @@ public class AnnotationFinder {
             System.err.println("No handlers found, your server won't do anything...");
         }
 
+    }
+
+    /** Written by LLM */
+    private static List<Class<?>> findClassesInJar(URL resource, String path, String packageName) throws IOException {
+        List<Class<?>> classes = new ArrayList<>();
+        JarURLConnection connection = (JarURLConnection) resource.openConnection();
+        JarFile jarFile = connection.getJarFile();
+        Enumeration<JarEntry> entries = jarFile.entries();
+
+        while (entries.hasMoreElements()) {
+            JarEntry entry = entries.nextElement();
+            String entryName = entry.getName();
+
+            if (entryName.startsWith(path) && entryName.endsWith(".class")) {
+                String className = entryName.replace('/', '.').substring(0, entryName.length() - 6);
+                try {
+                    classes.add(Class.forName(className));
+                } catch (ClassNotFoundException ignored) {
+                }
+            }
+        }
+        return classes;
     }
 
     private static List<Class<?>> findClasses(File directory, String packageName) {

@@ -62,3 +62,5 @@ data/
 
 # WHY IS THIS NOT DEFAULT??
 .env
+out/
+app.jar
