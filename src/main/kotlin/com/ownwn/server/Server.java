@@ -1,6 +1,6 @@
 package com.ownwn.server;
 
-import com.ownwn.server.intercept.InterceptReciever;
+import com.ownwn.server.intercept.InterceptReceiver;
 import com.ownwn.server.intercept.Interceptor;
 import com.ownwn.server.response.Response;
 import com.ownwn.server.response.TemplateResponse;
@@ -61,7 +61,7 @@ public class Server {
         Request request = Request.createFromExchange(exchange, basePath);
 
         for (Interceptor interceptor : interceptMethods) {
-            InterceptReciever rec = new InterceptReciever();
+            InterceptReceiver rec = new InterceptReceiver();
             interceptor.handle(request, rec);
 
             if (rec.isClosed()) {

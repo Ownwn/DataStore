@@ -9,7 +9,7 @@ import java.lang.reflect.Modifier;
 /** Acts like middleware, used to intercept requests before theyre routed */
 public interface Interceptor {
 
-    void handle(Request request, InterceptReciever interceptReciever);
+    void handle(Request request, InterceptReceiver interceptReceiver);
 
     HttpMethod method();
 
@@ -18,9 +18,9 @@ public interface Interceptor {
         validateExchangeMethod(m);
         return new Interceptor() {
             @Override
-            public void handle(Request request, InterceptReciever interceptReciever) {
+            public void handle(Request request, InterceptReceiver interceptReceiver) {
                 try {
-                    m.invoke(instance, request, interceptReciever);
+                    m.invoke(instance, request, interceptReceiver);
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
@@ -36,8 +36,8 @@ public interface Interceptor {
     }
 
     private static void validateExchangeMethod(Method m) {
-        if (m.getParameterCount() != 2 || !Request.class.isAssignableFrom(m.getParameterTypes()[0]) || !InterceptReciever.class.isAssignableFrom(m.getParameterTypes()[1])) {
-            throw new RuntimeException("Invalid handler parameters for method " + m + ". Should be " + Request.class + ", " + InterceptReciever.class);
+        if (m.getParameterCount() != 2 || !Request.class.isAssignableFrom(m.getParameterTypes()[0]) || !InterceptReceiver.class.isAssignableFrom(m.getParameterTypes()[1])) {
+            throw new RuntimeException("Invalid handler parameters for method " + m + ". Should be " + Request.class + ", " + InterceptReceiver.class);
         }
 
         if (!void.class.isAssignableFrom(m.getReturnType())) {

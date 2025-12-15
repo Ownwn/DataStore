@@ -2,7 +2,7 @@ package com.ownwn.datastore
 
 import com.ownwn.server.Request
 import com.ownwn.server.intercept.Intercept
-import com.ownwn.server.intercept.InterceptReciever
+import com.ownwn.server.intercept.InterceptReceiver
 import com.ownwn.server.response.WholeBodyResponse
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
@@ -12,7 +12,7 @@ const val cookieName: String = "COOKIE_VALUE"
 
 class Auth {
     @Intercept
-    fun auth(request: Request, interceptor: InterceptReciever) {
+    fun auth(request: Request, interceptor: InterceptReceiver) {
         if (loginPath == request.path()) {
             return
         }
