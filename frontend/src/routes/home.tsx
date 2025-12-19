@@ -1,10 +1,11 @@
 import {useEffect, useState} from "react";
 import styles from "./home.module.css";
+import type { JSX } from "react/jsx-runtime";
 
 type Entry = { name: string, plainText: boolean, content: string, createdAt: number, id: number }
 
 export function Home() {
-    let [items, setItems] = useState<Entry[]>([
+    const [items, setItems] = useState<Entry[]>([
 
         // {name: "first", plainText: true, content:"testing content here", createdAt: 1000, id:18183738},
         // {name: "second test", plainText: true, content:"Inventore reprehenderit consequatur velit qui totam. Occaecati sint voluptatem amet nobis repellendus reiciendis. Qui volup", createdAt: 1000, id:18183738},
@@ -12,10 +13,10 @@ export function Home() {
         // {name: "long filename testing  123123121928273.png", plainText: false, content:"File", createdAt: 2000, id:181836738}
 
     ]);
-    // @ts-ignore
-    let [status, setStatus] = useState("");
-    let [secondsSinceUpdate, setSecondsSinceUpdate] = useState(0)
-    let [encryptionKey, setEncryptionKey] = useState("")
+
+    const [status, setStatus] = useState("");
+    const [secondsSinceUpdate, setSecondsSinceUpdate] = useState(0)
+    const [encryptionKey, setEncryptionKey] = useState("")
 
     const images = ["jpg", "jpeg", "png", "webp", "gif", "svg"]
 
@@ -29,7 +30,7 @@ export function Home() {
 
     useEffect(() => {
         if (encryptionKey.length !== 0) {
-            document.cookie = "encodedEncryption=" + String(encryptionKey) + "; max-age=" + String(60*60*24*365)
+            document.cookie = "encodedEncryption=" + String(encryptionKey) + "; max-age=" + String(60 * 60 * 24 * 365)
             fetchItems()
         }
     }, [encryptionKey]);
@@ -57,9 +58,9 @@ export function Home() {
     } else {
         inner = <>
             <EncryptionStatus encryptionKey={encryptionKey} setEncryptionKey={setEncryptionKey}/>
-        <div className={styles.mainFlex}>
-            <GreetingForm fetchItems={fetchItems} setStatus={setStatus} encryptionKey={encryptionKey}/>
-        </div>
+            <div className={styles.mainFlex}>
+                <GreetingForm fetchItems={fetchItems} setStatus={setStatus} encryptionKey={encryptionKey}/>
+            </div>
 
         </>
     }
@@ -81,8 +82,8 @@ export function Home() {
         </ol>
     </div>;
 
-    function formatEntry(entry: Entry)  {
-        let entryText;
+    function formatEntry(entry: Entry) {
+        let entryText: JSX.Element;
 
         if (entry.plainText) {
             entryText =
@@ -236,7 +237,6 @@ function trimToFit(str: string, len: number) {
     return str.substring(0, len) + "..."
 }
 
-// @ts-ignore
 function GreetingForm({ fetchItems, setStatus, encryptionKey}) {
     const handleSubmit = async (e: any) => {
         e.preventDefault();
@@ -244,7 +244,6 @@ function GreetingForm({ fetchItems, setStatus, encryptionKey}) {
 
         const files = formData.getAll("files") as File[];
         const text = formData.get("data") as string;
-        // @ts-ignore
         if (files[0].size === 0 && !text) {
             return;
         }
@@ -270,7 +269,6 @@ function GreetingForm({ fetchItems, setStatus, encryptionKey}) {
                 } catch (e: any) {
                     setStatus(e.message)
                     throw e;
-                    return
                 }
                 const blob = new Blob([buf], {type: "application/octet-stream"})
                 body.append("file", blob, files[i].name)
@@ -315,7 +313,6 @@ function GreetingForm({ fetchItems, setStatus, encryptionKey}) {
     );
 }
 
-// @ts-ignore
 function EncryptionStatus({encryptionKey, setEncryptionKey}) {
     return <>
         <div className={styles.encryptionBox}>
@@ -386,7 +383,7 @@ async function decryptData(encryptedBuffer: ArrayBuffer, key: CryptoKey): Promis
     const data = encryptedArray.slice(16);
 
 
-    let datas = []
+    const datas = []
 
     for (let i = 0; i < data.byteLength; i+= 128_000_000) {
         const encryptedData = await crypto.subtle.encrypt(
@@ -415,7 +412,7 @@ async function encryptData(data: ArrayBuffer, key: CryptoKey): Promise<ArrayBuff
 
     // const numChunks = Math.floor(1 + data.byteLength / 128_000_000) // 1MB per chunk
 
-    let datas = []
+    const datas = []
 
     const staleIV = new Uint8Array(iv);
 
