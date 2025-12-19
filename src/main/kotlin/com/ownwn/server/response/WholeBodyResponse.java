@@ -76,6 +76,10 @@ public class WholeBodyResponse extends Response {
         return WholeBodyResponse.of(302, new byte[]{}, Map.of("Location", path));
     }
 
+    public static WholeBodyResponse unauthorised() {
+        return WholeBodyResponse.of(401, "");
+    }
+
     public static WholeBodyResponse badRequest() {
         return WholeBodyResponse.of(400, "");
     }

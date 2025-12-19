@@ -186,6 +186,10 @@ export function Home() {
     async function fetchItems() {
         try {
             const res = await fetch("api/entries");
+            if (res.status == 401) {
+                window.location.replace("api/login")
+                return;
+            }
             if (!res.ok) {
                 setStatus("Error getting entries" + res.status)
                 return
@@ -274,21 +278,26 @@ function GreetingForm({ fetchItems, setStatus, encryptionKey}) {
         }
 
 
-        const response = await fetch("api/submit", {
+        const res = await fetch("api/submit", {
             method: 'POST',
             body: body
         });
 
+        if (res.status == 401) {
+            window.location.replace("api/login")
+            return;
+        }
 
 
-        if (!response.ok) {
-            console.log("not ok " + response.status)
-            setStatus(await response.text() + " " + String(response.status));
+
+        if (!res.ok) {
+            console.log("not ok " + res.status)
+            setStatus(await res.text() + " " + String(res.status));
             return;
         }
         setStatus("")
 
-        const result = await response.text();
+        const result = await res.text();
         console.log(result);
 
         e.target.reset()

@@ -18,20 +18,20 @@ class Auth {
         }
 
         if (request.cookies().isNullOrEmpty()) {
-            interceptor.closeWithResponse(WholeBodyResponse.softRedirect(loginPath))
+            interceptor.closeWithResponse(WholeBodyResponse.unauthorised())
             return
         }
 
         val cookieValue = DataStoreApplication.getEnv(cookieName) ?: run {
             System.err.println("Missing cookie value!")
-            interceptor.closeWithResponse(WholeBodyResponse.softRedirect(loginPath))
+            interceptor.closeWithResponse(WholeBodyResponse.unauthorised())
             return
         }
 
 
         val authenticated = request.cookies()?.get(cookieName)?.let { URLDecoder.decode(it, StandardCharsets.UTF_8) } == cookieValue
         if (!authenticated) {
-            interceptor.closeWithResponse(WholeBodyResponse.softRedirect(loginPath))
+            interceptor.closeWithResponse(WholeBodyResponse.unauthorised())
             return
         }
     }
