@@ -75,4 +75,9 @@ class Controller {
     fun clearCookies(request: Request): Response {
         return TemplateResponse.of("clearcookie")
     }
+
+    @Handle("login")
+    fun login(request: Request): Response {
+        return TemplateResponse.of("login")
+    }
 }

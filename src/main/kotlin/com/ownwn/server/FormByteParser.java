@@ -48,7 +48,6 @@ public class FormByteParser {
                     return new Chunk(new String(Arrays.copyOfRange(arr, 0, index)), Arrays.copyOfRange(arr, index+4, arr.length-2-boundary.length()));
                 } )
                 .toList();
-        System.out.println();
     }
 
     public Map<String, List<FormAttachment>> getTypeGroups() {

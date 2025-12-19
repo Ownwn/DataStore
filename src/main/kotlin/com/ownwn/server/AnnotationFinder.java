@@ -126,7 +126,7 @@ public class AnnotationFinder {
         for (Method method : methods) {
             Handle annotation = method.getAnnotation(Handle.class);
             RequestHandler handler = RequestHandler.from(method, annotation, instance);
-            String path = Server.cleanUrl(annotation.value());
+            String path = HttpServer.cleanUrl(annotation.value());
 
             if (handlerMap.put(path, handler) != null) {
                 throw new RuntimeException("Duplicate path: " + path);

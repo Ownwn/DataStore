@@ -1,7 +1,7 @@
 package com.ownwn.datastore
 
 import com.ownwn.datastore.Env2.loadEnv
-import com.ownwn.server.Server
+import com.ownwn.server.HttpServer
 import java.nio.file.Files
 import java.nio.file.Path
 
@@ -16,7 +16,7 @@ class DataStoreApplication {
 fun main() {
     loadEnv()
     val port = DataStoreApplication.getEnv("PORT")?.toInt() ?: throw RuntimeException("Missing port .env")
-    Server.create("127.0.0.1", "/api", port)
+    HttpServer.create("127.0.0.1", "/api", port)
 }
 
 private object Env2 {

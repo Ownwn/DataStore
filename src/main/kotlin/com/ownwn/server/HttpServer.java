@@ -5,7 +5,6 @@ import com.ownwn.server.intercept.Interceptor;
 import com.ownwn.server.response.Response;
 import com.ownwn.server.response.TemplateResponse;
 import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpServer;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -14,7 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class Server {
+public class HttpServer {
     private final Map<String, RequestHandler> handleMethods = new HashMap<>();
     private final List<Interceptor> interceptMethods = new ArrayList<>();
     private final String friendlyAddress;
@@ -29,7 +28,7 @@ public class Server {
             String packageName = StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE)
                     .getCallerClass()
                     .getPackageName();
-            Server s = new Server(packageName, hostName, basePath, port);
+            HttpServer s = new HttpServer(packageName, hostName, basePath, port);
             System.out.println("Server started at " + s.friendlyAddress + basePath);
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -37,12 +36,12 @@ public class Server {
     }
 
 
-    private Server(String packageName, String hostName, String basePath, int port) throws IOException {
-        HttpServer server = HttpServer.create(new InetSocketAddress(hostName, port), 0);
+    private HttpServer(String packageName, String hostName, String basePath, int port) throws IOException {
+        com.sun.net.httpserver.HttpServer httpServer = com.sun.net.httpserver.HttpServer.create(new InetSocketAddress(hostName, port), 0);
         AnnotationFinder.loadAllAnnotatedMethods(packageName, handleMethods, interceptMethods);
         this.basePath = basePath;
 
-        server.createContext(basePath).setHandler(exchange -> {
+        httpServer.createContext(basePath).setHandler(exchange -> {
             try {
                 handle(exchange);
             } catch (Exception e) {
@@ -51,9 +50,9 @@ public class Server {
             }
         });
 
-        server.start();
+        httpServer.start();
 
-        friendlyAddress = server.getAddress().toString().replaceFirst("^/", "");
+        friendlyAddress = httpServer.getAddress().toString().replaceFirst("^/", "");
     }
 
     private void handle(HttpExchange exchange) throws IOException {
