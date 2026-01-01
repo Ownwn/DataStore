@@ -1,0 +1,58 @@
+package com.ownwn.server.request;
+
+
+import com.ownwn.server.FormAttachment;
+import com.ownwn.server.FormByteParser;
+import com.ownwn.server.Headers;
+import com.ownwn.server.HttpMethod;
+
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.InetAddress;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+public class PostRequest extends Request {
+    private static final Pattern formBoundaryPattern = Pattern.compile("^multipart/form-data; +boundary=(.+)$");
+
+    private String multiPartFormBoundary = null;
+    private Map<String, List<FormAttachment>> formData = null;
+
+
+    public PostRequest(InetAddress remoteAddress, InputStream requestBody, Headers requestHeaders,
+                      OutputStream responseBody, String path, Map<String, String> cookies, Map<String, String> queryParameters) {
+
+        super(remoteAddress, requestBody, requestHeaders, responseBody, path, cookies, queryParameters);
+
+        multiPartFormBoundary = tryParseMultiPartFormBoundary();
+
+    }
+
+    @Override
+    public HttpMethod method() {
+        return HttpMethod.POST;
+    }
+
+    public Map<String, List<FormAttachment>> loadFormData() {
+        if (multiPartFormBoundary == null) return null;
+        if (formData != null) return formData;
+
+        FormByteParser parser = new FormByteParser(requestBody, multiPartFormBoundary);
+        return formData = parser.getTypeGroups();
+    }
+
+    private String tryParseMultiPartFormBoundary() {
+        String contentType = requestHeaders.get("Content-Type");
+        if (contentType == null) return null;
+
+        Matcher formBoundaryMatcher = formBoundaryPattern.matcher(contentType);
+        if (!formBoundaryMatcher.find()) {
+            return null;
+        }
+
+        return "--" + formBoundaryMatcher.group(1);
+    }
+
+}

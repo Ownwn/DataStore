@@ -1,5 +1,6 @@
 package com.ownwn.server;
 
+import com.ownwn.server.request.Request;
 import com.ownwn.server.response.Response;
 
 import java.lang.reflect.Method;

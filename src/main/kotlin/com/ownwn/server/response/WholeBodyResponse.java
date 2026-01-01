@@ -77,7 +77,7 @@ public class WholeBodyResponse extends Response {
     }
 
     public static WholeBodyResponse unauthorised() {
-        return WholeBodyResponse.of(401, "");
+        return WholeBodyResponse.of(401, "401 Unauthorised");
     }
 
     public static WholeBodyResponse badRequest() {

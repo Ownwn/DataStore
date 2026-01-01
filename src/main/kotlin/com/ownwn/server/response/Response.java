@@ -11,7 +11,9 @@ import java.nio.file.Files;
 import java.util.Optional;
 
 public abstract class Response {
-    protected Headers headers = new Headers();
+    protected Headers headers = new Headers() {{
+        put("Content-Type", "text/html");
+    }};
     protected int status;
 
     public abstract int bodyLength();

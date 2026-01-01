@@ -1,7 +1,7 @@
 package com.ownwn.server.intercept;
 
 import com.ownwn.server.HttpMethod;
-import com.ownwn.server.Request;
+import com.ownwn.server.request.Request;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;

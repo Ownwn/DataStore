@@ -2,7 +2,8 @@ package com.ownwn.datastore
 
 import com.ownwn.server.Handle
 import com.ownwn.server.HttpMethod
-import com.ownwn.server.Request
+import com.ownwn.server.request.PostRequest
+import com.ownwn.server.request.Request
 import com.ownwn.server.response.Response
 import com.ownwn.server.response.TemplateResponse
 import com.ownwn.server.response.WholeBodyResponse
@@ -16,7 +17,7 @@ class Controller {
     }
 
     @Handle("submit", method = HttpMethod.POST)
-    fun submit(request: Request): Response {
+    fun submit(request: PostRequest): Response {
         val formData = request.loadFormData()!!
         val text = formData["text"]?.getOrNull(0)
         val files = formData["file"]

@@ -3,7 +3,7 @@ package com.ownwn.server;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public final class Headers {
+public class Headers {
     private final Map<String, String> internalHeaders;
 
     public Headers(com.sun.net.httpserver.Headers headers) {
@@ -13,13 +13,32 @@ public final class Headers {
         }
     }
 
-    public Map<String, List<String>> tempBridge() {
-        Map<String, List<String>> res = new HashMap<>();
-        for (var header : internalHeaders.entrySet()) {
-            res.put(header.getKey(), List.of(header.getValue()));
+    public static Headers fromRawList(List<String> rawHeaders) {
+        Headers headers = new Headers();
+        for (String header : rawHeaders) {
+            if (header == null) continue;
+            String[] parts = header.split(":");
+            if (parts.length != 2) continue;
+            headers.put(parts[0], parts[1]);
+        }
+        return headers;
+    }
 
+    public Map<String, String> getAndRemoveCookies() {
+        String cookieValue = internalHeaders.remove("Cookie");
+        if (cookieValue == null || cookieValue.isBlank()) return Map.of();
+        Map<String, String> res = new HashMap<>();
+        String[] cookies = cookieValue.split(";"); // todo breaks on ; inside cookie content?
+        for (String cookie : cookies) {
+            String[] parts = cookie.split("=");
+            if (parts.length != 2) continue;
+            res.put(parts[0], parts[1]);
         }
         return res;
+    }
+
+    public Set<Map.Entry<String, String>> entrySet() {
+        return internalHeaders.entrySet();
     }
 
     public Headers() {
@@ -27,7 +46,7 @@ public final class Headers {
     }
 
     public String put(String headerName, String headerValue) {
-        return internalHeaders.put(capitalise(headerName), capitalise(headerValue));
+        return internalHeaders.put(capitalise(headerName), headerValue);
     }
 
     public String get(String headerName) {

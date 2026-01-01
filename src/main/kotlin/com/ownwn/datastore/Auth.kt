@@ -1,6 +1,6 @@
 package com.ownwn.datastore
 
-import com.ownwn.server.Request
+import com.ownwn.server.request.Request
 import com.ownwn.server.intercept.Intercept
 import com.ownwn.server.intercept.InterceptReceiver
 import com.ownwn.server.response.WholeBodyResponse
