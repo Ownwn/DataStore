@@ -57,7 +57,7 @@ public class WholeBodyResponse extends Response {
 
     public static <T extends JsonConvertible> WholeBodyResponse json(List<T> list) {
         String json = list.stream().map(JsonConvertible::toJson).collect(Collectors.joining(", ", "[", "]"));
-        return WholeBodyResponse.ok(json);
+        return WholeBodyResponse.of(200, json.getBytes(StandardCharsets.UTF_8), Map.of("Content-Type", "application/json"));
     }
 
     public static WholeBodyResponse ok() {

@@ -18,7 +18,7 @@ class Controller {
 
     @Handle("submit", method = HttpMethod.POST)
     fun submit(request: PostRequest): Response {
-        val formData = request.loadFormData()!!
+        val formData = request.loadFormData() ?: return WholeBodyResponse.badRequest()
         val text = formData["text"]?.getOrNull(0)
         val files = formData["file"]
 
@@ -53,7 +53,7 @@ class Controller {
             return WholeBodyResponse.badRequest("missing params")
         }
         if (Database.deleteEntry(created, id)) {
-            return WholeBodyResponse.ok()
+            return WholeBodyResponse.ok("Successfully deleted")
         }
         return WholeBodyResponse.notFound
     }

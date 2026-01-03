@@ -24,7 +24,7 @@ public class FormByteParser {
 
     public FormByteParser(InputStream body, String boundary) {
         try {
-            this.bytes = body.readAllBytes();
+            this.bytes = ByteArray.fromInputStream(body).getInternalArray();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -85,16 +85,15 @@ public class FormByteParser {
         List<Integer> endIndices = new ArrayList<>(32);
 
         for (int i = 0; i < bytes.length; i++) {
-            if (boundaryIndex >= boundary.length()) {
-                endIndices.add(i);
-
-                boundaryIndex = 0;
-                i++;
-                continue;
-            }
             if (bytes[i] != boundary.charAt(boundaryIndex++)) {
                 boundaryIndex = 0;
+                if (bytes[i] == boundary.charAt(0)) boundaryIndex = 1;
             }
+            if (boundaryIndex >= boundary.length()) {
+                endIndices.add(i+1);
+                boundaryIndex = 0;
+            }
+
         }
         List<byte[]> parts = new ArrayList<>(endIndices.size());
 

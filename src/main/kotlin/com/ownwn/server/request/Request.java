@@ -17,7 +17,7 @@ public abstract class Request {
     protected final InputStream requestBody;
     protected final Headers requestHeaders;
     protected final OutputStream responseBody;
-    protected final String path;
+    protected String path;
     protected final Map<String, String> cookies;
     protected final Map<String, String> queryParameters;
 
@@ -138,6 +138,10 @@ public abstract class Request {
 
     public Map<String, String> queryParameters() {
         return queryParameters;
+    }
+
+    public void setPath(String newPath) {
+        this.path = newPath;
     }
 
 //    @Override

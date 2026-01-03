@@ -15,7 +15,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class PostRequest extends Request {
-    private static final Pattern formBoundaryPattern = Pattern.compile("^multipart/form-data; +boundary=(.+)$");
+    private static final Pattern formBoundaryPattern = Pattern.compile("^\\s*multipart/form-data;\\s*boundary=(.+)\\s*$");
 
     private String multiPartFormBoundary = null;
     private Map<String, List<FormAttachment>> formData = null;

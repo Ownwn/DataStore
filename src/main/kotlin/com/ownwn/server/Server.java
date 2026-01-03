@@ -28,7 +28,7 @@ public class Server {
                     .getCallerClass()
                     .getPackageName();
             Server s = new Server(packageName, basePath, port);
-            System.out.println("Server started at " + s.friendlyAddress);
+            System.out.println("Server started at " + s.friendlyAddress + basePath);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -36,7 +36,7 @@ public class Server {
 
 
     private Server(String packageName, String basePath, int port) throws IOException {
-        BaseHttpServer httpServer = BaseHttpServer.create(port, basePath, request -> {
+        BaseHttpServer httpServer = BaseHttpServer.create(port, request -> {
             try {
                 handle(request);
             } catch (Exception e) {
@@ -51,6 +51,11 @@ public class Server {
     }
 
     private void handle(Request request) throws IOException {
+        if (!request.path().startsWith(basePath)) {
+            handle404(request);
+        } else {
+            request.setPath(request.path().substring(basePath.length()));
+        }
         for (Interceptor interceptor : interceptMethods) {
             InterceptReceiver rec = new InterceptReceiver();
             interceptor.handle(request, rec);
