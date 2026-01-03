@@ -28,10 +28,10 @@ public class ByteArray {
 
     public static ByteArray fromInputStream(InputStream body) throws IOException {
         ByteArray array = new ByteArray();
-        byte b;
+        int b;
         try {
-            while ((b = (byte) body.read()) != -1) {
-                array.add(b);
+            while ((b = body.read()) != -1) {
+                array.add((byte) b);
             }
         } catch (SocketTimeoutException ignored) {
 
