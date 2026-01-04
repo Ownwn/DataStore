@@ -97,9 +97,19 @@ export function Home() {
                     <button onClick={() => copyToClipboard(entry.content)} className={styles.copyButton}>Copy</button>
 
                 </>
-        } else {
+        } else { // it's a file
             const created = String(entry.createdAt)
-            const fileNameBase64 = btoa(entry.name)
+            let fileNameBase64: string;
+            try {
+                fileNameBase64 = btoa(entry.name)
+            } catch (e) {
+                let errorMsg = String(e);
+                if (errorMsg.length > 80) errorMsg = errorMsg.substring(0, 80)
+                return <>
+                    {errorMsg}
+                    <span><button onClick={() => deleteItem(entry)} className={styles.deleteButton}>Delete</button></span>
+                </>
+            }
 
             entryText = <button type="button" className={styles.dataButton} onClick={async () => {
                 const url = await getDownloadUrl(created, fileNameBase64) as string
