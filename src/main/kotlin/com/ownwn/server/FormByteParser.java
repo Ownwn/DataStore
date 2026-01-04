@@ -26,7 +26,7 @@ public class FormByteParser {
         this.boundary = boundary;
         try {
             this.bytes = new byte[contentLength];
-            if (body.read(this.bytes) < contentLength) {
+            if (body.readNBytes(this.bytes, 0, contentLength) < contentLength) {
                 throw new IOException(); // code smell? definitely
             }
         } catch (IOException e) {
