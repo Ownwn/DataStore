@@ -281,7 +281,8 @@ function GreetingForm({ fetchItems, setStatus, encryptionKey}) {
                     throw e;
                 }
                 const blob = new Blob([buf], {type: "application/octet-stream"})
-                body.append("file", blob, files[i].name)
+                const fileNameTrimmed = files[i].name.length > 64 ? files[i].name.substring(0, 64) : files[i].name
+                body.append("file", blob, fileNameTrimmed)
             }
         }
 

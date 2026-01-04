@@ -9,7 +9,7 @@ import java.util.regex.Pattern;
 public class FormByteParser {
     private static final Pattern dispositionPattern = Pattern.compile("Content-Disposition: form-data; name=\"([^\"]+)\"(?:; filename=\"([^\"]+)\")?");
 
-    private final byte[] bytes;
+    private byte[] bytes;
     private final String boundary;
     private int boundaryIndex = 0;
     private List<Chunk> chunks;
@@ -22,19 +22,25 @@ public class FormByteParser {
     }
 
 
-    public FormByteParser(InputStream body, String boundary) {
-        try {
-            this.bytes = ByteArray.fromInputStream(body).getInternalArray();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+    public FormByteParser(InputStream body, String boundary, int contentLength) {
         this.boundary = boundary;
+        try {
+            this.bytes = new byte[contentLength];
+            if (body.read(this.bytes) < contentLength) {
+                throw new IOException(); // code smell? definitely
+            }
+        } catch (IOException e) {
+            chunks = List.of();
+            return;
+        }
+
 
         List<byte[]> rawParts;
         try {
             rawParts = readParts();
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            chunks = List.of();
+            return;
         }
 
         chunks = rawParts.stream()

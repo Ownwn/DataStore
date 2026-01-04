@@ -38,8 +38,14 @@ public class PostRequest extends Request {
     public Map<String, List<FormAttachment>> loadFormData() {
         if (multiPartFormBoundary == null) return null;
         if (formData != null) return formData;
+        int contentLength;
+        try {
+            contentLength = Integer.parseUnsignedInt(requestHeaders().get("Content-Length").trim());
+        } catch (Exception e) {
+            return null;
+        }
 
-        FormByteParser parser = new FormByteParser(requestBody, multiPartFormBoundary);
+        FormByteParser parser = new FormByteParser(requestBody, multiPartFormBoundary, contentLength);
         return formData = parser.getTypeGroups();
     }
 
