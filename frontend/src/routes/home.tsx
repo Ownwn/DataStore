@@ -38,6 +38,7 @@ export function Home() {
     useEffect(() => {
         if (crypto.subtle === undefined) {
             setStatus("Crypto not available! Are you using HTTPS?")
+            return
         }
 
         const encryption = document.cookie
@@ -84,6 +85,13 @@ export function Home() {
 
     function formatEntry(entry: Entry) {
         let entryText: JSX.Element;
+
+        if (!entry || entry.name === undefined || entry.content === undefined || entry.id === undefined) {
+            if (entry.createdAt !== undefined && entry.id !== undefined) {
+                return <span><button onClick={() => deleteItem(entry)} className={styles.deleteButton}>Delete</button></span>
+            }
+            return <p>Error formatting entry!</p>
+        }
 
         if (entry.plainText) {
             entryText =
@@ -202,7 +210,7 @@ export function Home() {
                 return;
             }
             if (!res.ok) {
-                setStatus("Error getting entries" + res.status)
+                setStatus("Error getting entries" + String(res.status))
                 return
             }
             const entries = await res.json();
@@ -214,7 +222,7 @@ export function Home() {
             }
 
             const key = await getEncryptionKey(encryptionKey);
-            const decryptedEntries = await Promise.all(
+            const decryptedEntries: Entry[] = await Promise.all(
                 entries.map(async (entry: Entry) => {
                     if (!entry.plainText) {
                         return entry
