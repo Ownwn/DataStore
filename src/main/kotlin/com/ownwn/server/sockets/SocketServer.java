@@ -1,14 +1,15 @@
 package com.ownwn.server.sockets;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
+import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-import static java.lang.foreign.ValueLayout.ADDRESS;
-import static java.lang.foreign.ValueLayout.JAVA_INT;
-import static java.lang.foreign.ValueLayout.JAVA_LONG;
-import static java.lang.foreign.ValueLayout.JAVA_SHORT;
+import static java.lang.foreign.ValueLayout.*;
 
 public class SocketServer { // todo split arenas to avoid memory leak over time
     private final FFIHelper ffiHelper;
@@ -55,19 +56,51 @@ public class SocketServer { // todo split arenas to avoid memory leak over time
             System.err.println("Failed to invoke accept");
         }
 
-        MemorySegment buf = arena.allocate(1000, 1L);
-
-        int numReaded = (int) ((long) ffiHelper.callFunction("read", JAVA_LONG, List.of(JAVA_INT, ADDRESS, JAVA_LONG), List.of(c, buf, buf.byteSize())));
-        if (numReaded > 0) {
-            System.out.println("msg from client: " + buf.getString(0, StandardCharsets.UTF_8));
-        }
-
-
         MemorySegment resString = arena.allocateFrom("cool res foobar");
         ffiHelper.callFunction("write", JAVA_LONG, List.of(JAVA_INT, ADDRESS, JAVA_LONG), List.of(c, resString, resString.byteSize()));
 
         ffiHelper.callIntFunction("close", JAVA_INT, List.of(c));
-        return new Client(); // todo
+        return new Client() {
+            @Override
+            public InputStream getInputStream() {
+                return new InputStream() {
+                    @Override
+                    public int read() {
+                        // todo chunk buf to optimize allocs
+                        MemorySegment buf = arena.allocate(1, 1L);
+
+                        try {
+                            int numReaded = (int) ((long) ffiHelper.callFunction("read", JAVA_LONG, List.of(JAVA_INT, ADDRESS, JAVA_LONG), List.of(c, buf, buf.byteSize())));
+                            if (numReaded <= 0) return -1;
+                            return buf.get(JAVA_BYTE, 0) & 0xFF;
+                        } catch (Throwable e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                };
+            }
+
+            @Override
+            public OutputStream getOutputStream() {
+                return new OutputStream() {
+                    @Override
+                    public void write(int b) {
+                        MemorySegment resByte = arena.allocateFrom(JAVA_BYTE, (byte) b); // todo optimize chunk size
+                        try {
+                            ffiHelper.callFunction("write", JAVA_LONG, List.of(JAVA_INT, ADDRESS, JAVA_LONG), List.of(c, resByte, 1));
+                        } catch (Throwable e) {
+                            throw new RuntimeException(e);
+                        }
+
+                    }
+                };
+            }
+
+            @Override
+            public InetAddress getInetAddress() {
+
+            }
+        }; // todo
     }
 
     public void close() {

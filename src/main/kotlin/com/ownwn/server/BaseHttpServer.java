@@ -55,7 +55,7 @@ public class BaseHttpServer {
                     }
 
                     new Thread(() -> {
-//                        Request request = createRequest(client);
+                        Request request = createRequest(client);
                         Request request = null; // todo
                         handler.accept(request);
                     }).start();
