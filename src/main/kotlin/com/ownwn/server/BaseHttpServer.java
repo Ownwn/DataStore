@@ -61,9 +61,8 @@ public class BaseHttpServer {
     }
 
     private Request createRequest(Client client, Arena arena) {
-        client.setArena(arena);
         try {
-            InputStream s = client.getInputStream();
+            InputStream s = client.getInputStream(arena);
 
             List<String> rawHeaders = getRawHeaders(s);
             if (rawHeaders.isEmpty()) {
@@ -87,11 +86,11 @@ public class BaseHttpServer {
 
 
             if (method == HttpMethod.GET) {
-                return new GetRequest(client.getInetAddress(), s, headers, client.getOutputStream(), requestPath, cookies, requestParams);
+                return new GetRequest(client.getInetAddress(), s, headers, client.getOutputStream(arena), requestPath, cookies, requestParams);
             } else if (method == HttpMethod.POST) {
-                return new PostRequest(client.getInetAddress(), s, headers, client.getOutputStream(), requestPath, cookies, requestParams);
+                return new PostRequest(client.getInetAddress(), s, headers, client.getOutputStream(arena), requestPath, cookies, requestParams);
             } else {
-                return new GetRequest(client.getInetAddress(), s, headers, client.getOutputStream(), requestPath, cookies, requestParams);
+                return new GetRequest(client.getInetAddress(), s, headers, client.getOutputStream(arena), requestPath, cookies, requestParams);
                 // todo
             }
 

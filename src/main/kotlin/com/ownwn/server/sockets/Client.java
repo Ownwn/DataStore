@@ -14,22 +14,14 @@ import static java.lang.foreign.ValueLayout.JAVA_INT;
 import static java.lang.foreign.ValueLayout.JAVA_LONG;
 
 public abstract class Client {
-    protected FFIHelper clientFFIhelper;
-    protected Arena arena;
-
-    public void setArena(Arena arena) {
-        this.arena = arena;
-        clientFFIhelper = new FFIHelper(arena);
-    }
-
-    public abstract InputStream getInputStream();
-    public abstract OutputStream getOutputStream();
+    public abstract InputStream getInputStream(Arena arena);
+    public abstract OutputStream getOutputStream(Arena arena);
     public abstract InetAddress getInetAddress();
 
     public static Client fromFileSocketDescriptor(int c) {
         return new Client() {
             @Override
-            public InputStream getInputStream() {
+            public InputStream getInputStream(Arena arena) {
                 return new InputStream() {
                     @Override
                     public int read() {
@@ -37,7 +29,7 @@ public abstract class Client {
                         MemorySegment buf = arena.allocate(1, 1L);
 
                         try {
-                            int numReaded = (int) ((long) clientFFIhelper.callFunction("read", JAVA_LONG, List.of(JAVA_INT, ADDRESS, JAVA_LONG), List.of(c, buf, buf.byteSize())));
+                            int numReaded = (int) ((long) FFIHelper.ofArena(arena).callFunction("read", JAVA_LONG, List.of(JAVA_INT, ADDRESS, JAVA_LONG), List.of(c, buf, buf.byteSize())));
                             if (numReaded <= 0) return -1;
 
                             return buf.get(JAVA_BYTE, 0) & 0xFF;
@@ -49,13 +41,13 @@ public abstract class Client {
             }
 
             @Override
-            public OutputStream getOutputStream() {
+            public OutputStream getOutputStream(Arena arena) {
                 return new OutputStream() {
                     @Override
                     public void write(int b) throws IOException {
                         MemorySegment resByte = arena.allocateFrom(JAVA_BYTE, (byte) b); // todo optimize chunk size
                         try {
-                            clientFFIhelper.callFunction("write", JAVA_LONG, List.of(JAVA_INT, ADDRESS, JAVA_LONG), List.of(c, resByte, 1));
+                            FFIHelper.ofArena(arena).callFunction("write", JAVA_LONG, List.of(JAVA_INT, ADDRESS, JAVA_LONG), List.of(c, resByte, 1));
                         } catch (Throwable e) {
                             throw new IOException(e);
                         }
@@ -66,7 +58,7 @@ public abstract class Client {
                     public void close() throws IOException {
                         super.close(); // todo close client when done! important!
                         try {
-                            clientFFIhelper.callIntFunction("close", JAVA_INT, List.of(c));
+                            FFIHelper.ofArena(arena).callIntFunction("close", JAVA_INT, List.of(c));
                         } catch (Throwable e) {
                             throw new IOException(e);
                         }

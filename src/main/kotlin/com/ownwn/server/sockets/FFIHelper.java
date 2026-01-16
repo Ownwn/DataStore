@@ -17,7 +17,10 @@ public class FFIHelper {
         this.arena = arena;
         linker = Linker.nativeLinker();
         stdLib = linker.defaultLookup();
+    }
 
+    public static FFIHelper ofArena(Arena arena) {
+        return new FFIHelper(arena);
     }
 
     /** adapted from https://dev.java/learn/ffm/native/ */
