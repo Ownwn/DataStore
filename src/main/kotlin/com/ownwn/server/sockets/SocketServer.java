@@ -66,67 +66,12 @@ public class SocketServer { // todo split arenas to avoid memory leak over time
 
         int c = (int) ffiHelper.callFunction("accept", JAVA_INT, List.of(JAVA_INT, ADDRESS, ADDRESS) ,List.of(socketHandle, sockAddrStoragePeer, addrLength));
         if (c < 0) {
-            MemorySegment str = arena.allocateFrom("accept");
-            ffiHelper.callFunction("perror", ADDRESS, List.of(ADDRESS) ,List.of(str));
-            throw new RuntimeException("Failed to invoke accept");
+            // print out what went wrong
+            ffiHelper.callFunction("perror", ADDRESS, List.of(ADDRESS) ,List.of(arena.allocateFrom("accept")));
+            throw new RuntimeException("Failed to invoke accept with error (hopefully) above");
         }
 
-
-        return new Client() {
-            @Override
-            public InputStream getInputStream() {
-                return new InputStream() {
-                    @Override
-                    public int read() {
-                        // todo chunk buf to optimize allocs
-                        MemorySegment buf = arena.allocate(1, 1L);
-
-                        try {
-                            int numReaded = (int) ((long) clientFFIhelper.callFunction("read", JAVA_LONG, List.of(JAVA_INT, ADDRESS, JAVA_LONG), List.of(c, buf, buf.byteSize())));
-                            if (numReaded <= 0) return -1;
-
-                            return buf.get(JAVA_BYTE, 0) & 0xFF;
-                        } catch (Throwable e) {
-                            throw new RuntimeException(e);
-                        }
-                    }
-                };
-            }
-
-            @Override
-            public OutputStream getOutputStream() {
-                return new OutputStream() {
-                    @Override
-                    public void write(int b) throws IOException {
-                        MemorySegment resByte = arena.allocateFrom(JAVA_BYTE, (byte) b); // todo optimize chunk size
-                        try {
-                            clientFFIhelper.callFunction("write", JAVA_LONG, List.of(JAVA_INT, ADDRESS, JAVA_LONG), List.of(c, resByte, 1));
-                        } catch (Throwable e) {
-                            throw new IOException(e);
-                        }
-
-                    }
-
-                    @Override
-                    public void close() throws IOException {
-                        super.close(); // todo close client when done! important!
-                        try {
-                            clientFFIhelper.callIntFunction("close", JAVA_INT, List.of(c));
-                        } catch (Throwable e) {
-                            throw new IOException(e);
-                        }
-                    }
-                };
-            }
-
-            @Override
-            public InetAddress getInetAddress() {
-                return InetAddress.ofLiteral("123.123.123.123");
-            }
-        }; // todo
-    }
-
-    public void close() {
+        return Client.fromFileSocketDescriptor(c);
 
     }
 }

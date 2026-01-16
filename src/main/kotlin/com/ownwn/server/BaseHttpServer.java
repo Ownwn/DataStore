@@ -17,9 +17,6 @@ import java.util.regex.Pattern;
 
 public class BaseHttpServer {
     private final Pattern getRequestParamPattern = Pattern.compile("[?&]([^?=&]+)=([^?=&]+)"); // todo single responsibility principal?
-
-    private final int port;
-    private final Consumer<Request> handler;
     SocketServer socket;
 
     public String getAddress() {
@@ -33,10 +30,7 @@ public class BaseHttpServer {
 
 
     private BaseHttpServer(short port, Consumer<Request> handler) {
-        this.port = port;
-        this.handler = handler;
-
-        new Thread(() -> {
+        Thread baseServerHandlerThread = new Thread(() -> {
             try (Arena arena = Arena.ofConfined()) {
                 socket = new SocketServer(port, arena);
                 while (true) {
@@ -48,20 +42,21 @@ public class BaseHttpServer {
                         continue;
                     }
 
-                    new Thread(() -> {
+                    Thread clientRequestHandlerThread = new Thread(() -> {
                         try (Arena clientArena = Arena.ofConfined()) {
                             Request request = createRequest(client, clientArena);
                             handler.accept(request);
                         }
-                    }).start();
+                    });
+                    clientRequestHandlerThread.start();
                 }
             } catch (Throwable e) {
                 //noinspection CallToPrintStackTrace
                 e.printStackTrace();
-            } finally {
-                if (socket != null) socket.close();
             }
-        }).start();
+        });
+
+        baseServerHandlerThread.start();
 
     }
 
