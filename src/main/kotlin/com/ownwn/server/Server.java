@@ -18,11 +18,11 @@ public class Server {
     private final String friendlyAddress;
     private final String basePath;
 
-    public static void create(int port) {
+    public static void create(short port) {
         create("/", port);
     }
 
-    public static void create(String basePath, int port) {
+    public static void create(String basePath, short port) {
         try {
             String packageName = StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE)
                     .getCallerClass()
@@ -35,7 +35,7 @@ public class Server {
     }
 
 
-    private Server(String packageName, String basePath, int port) throws IOException {
+    private Server(String packageName, String basePath, short port) throws IOException {
         BaseHttpServer httpServer = BaseHttpServer.create(port, request -> {
             try {
                 handle(request);

@@ -16,7 +16,7 @@ public class SocketServer { // todo split arenas to avoid memory leak over time
     private int socketHandle;
     private InetAddress inetAddress;
 
-    public SocketServer(Arena arena) throws Throwable {
+    public SocketServer(short port, Arena arena) throws Throwable {
 
         ffiHelper = new FFIHelper(arena);
         this.arena = arena;
@@ -36,7 +36,7 @@ public class SocketServer { // todo split arenas to avoid memory leak over time
 
         // family 2, port 2, addr 4, zerof 8. Total struct size == 16 bytes
         sockaddr_in.set(JAVA_SHORT, 0, (short) 2);
-        sockaddr_in.set(JAVA_SHORT, 2, ((Integer) ffiHelper.callIntFunction("htons", JAVA_INT, List.of(8081))).shortValue());
+        sockaddr_in.set(JAVA_SHORT, 2, (Short) ffiHelper.callShortFunction("htons", JAVA_SHORT, List.of(port)));
         sockaddr_in.set(JAVA_INT, 4, 0);
         sockaddr_in.set(JAVA_LONG, 8, 0);
 

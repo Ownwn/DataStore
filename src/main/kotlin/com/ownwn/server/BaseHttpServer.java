@@ -4,23 +4,16 @@ import com.ownwn.server.request.GetRequest;
 import com.ownwn.server.request.PostRequest;
 import com.ownwn.server.request.Request;
 import com.ownwn.server.sockets.Client;
-import com.ownwn.server.sockets.FFIHelper;
 import com.ownwn.server.sockets.SocketServer;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.foreign.*;
-import java.net.InetAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.net.SocketTimeoutException;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static java.lang.foreign.ValueLayout.*;
 
 public class BaseHttpServer {
     private final Pattern getRequestParamPattern = Pattern.compile("[?&]([^?=&]+)=([^?=&]+)"); // todo single responsibility principal?
@@ -34,18 +27,18 @@ public class BaseHttpServer {
         return socket.getHostInetAddress().getHostAddress();
     }
 
-    public static BaseHttpServer create(int port, Consumer<Request> handler) {
+    public static BaseHttpServer create(short port, Consumer<Request> handler) {
         return new BaseHttpServer(port, handler);
     }
 
 
-    private BaseHttpServer(int port, Consumer<Request> handler) {
+    private BaseHttpServer(short port, Consumer<Request> handler) {
         this.port = port;
         this.handler = handler;
 
         new Thread(() -> {
             try (Arena arena = Arena.ofConfined()) {
-                socket = new SocketServer(arena);
+                socket = new SocketServer(port, arena);
                 while (true) {
                     // todo timeout
                     Client client;
