@@ -10,6 +10,7 @@ import com.ownwn.server.sockets.SocketServer;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.foreign.*;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
@@ -29,8 +30,8 @@ public class BaseHttpServer {
     SocketServer socket;
 
     public String getAddress() {
-//        return socket.getInetAddress().getHostAddress();
-        return null; // todo
+        if (socket == null) return "test"; //todo
+        return socket.getHostInetAddress().getHostAddress();
     }
 
     public static BaseHttpServer create(int port, Consumer<Request> handler) {
@@ -44,20 +45,21 @@ public class BaseHttpServer {
 
         new Thread(() -> {
             try (Arena arena = Arena.ofConfined()) {
-                SocketServer socketServer = new SocketServer(arena);
+                socket = new SocketServer(arena);
                 while (true) {
                     // todo timeout
                     Client client;
                     try {
-                        client = socketServer.accept();
+                        client = socket.accept();
                     } catch (SocketTimeoutException socketTimeoutException) {
                         continue;
                     }
 
                     new Thread(() -> {
-                        Request request = createRequest(client);
-                        Request request = null; // todo
-                        handler.accept(request);
+                        try (Arena clientArena = Arena.ofConfined()) {
+                            Request request = createRequest(client, clientArena);
+                            handler.accept(request);
+                        }
                     }).start();
                 }
             } catch (Throwable e) {
@@ -70,11 +72,15 @@ public class BaseHttpServer {
 
     }
 
-    private Request createRequest(Socket client) {
+    private Request createRequest(Client client, Arena arena) {
+        client.setArena(arena);
         try {
             InputStream s = client.getInputStream();
 
             List<String> rawHeaders = getRawHeaders(s);
+            if (rawHeaders.isEmpty()) {
+                throw new RuntimeException("Bad HTTP request!"); // todo handle better
+            }
             String requestMethod = rawHeaders.removeFirst();
             String[] requestParts = requestMethod.split(" ");
             HttpMethod method = HttpMethod.fromString(requestParts[0]);
