@@ -1,8 +1,5 @@
 package com.ownwn.server.sockets;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 import java.net.InetAddress;
@@ -10,7 +7,11 @@ import java.util.List;
 
 import static java.lang.foreign.ValueLayout.*;
 
-public class SocketServer { // todo split arenas to avoid memory leak over time
+/** I'm aware that the byte sizes are quite hard coded, I will improve them in the future to hopefully support more archs */
+public class SocketServer {
+    private static final int AF_INET = 2; // todo use this
+
+
     private final FFIHelper ffiHelper;
     private final Arena arena;
     private int socketHandle;
@@ -53,7 +54,23 @@ public class SocketServer { // todo split arenas to avoid memory leak over time
     }
 
     public InetAddress getHostInetAddress() {
-        return InetAddress.ofLiteral("0.0.0.0"); // todo
+        if (inetAddress != null) return inetAddress;
+
+        MemorySegment sockaddr_in_local = arena.allocate(16);
+
+        try {
+            if ((int) ffiHelper.callFunction("getsockname", JAVA_INT, List.of(JAVA_INT, ADDRESS, JAVA_INT), List.of(socketHandle, sockaddr_in_local, sockaddr_in_local.byteSize())) == 0) {
+                MemorySegment ipString = arena.allocate(16);
+                ffiHelper.callFunction("inet_ntop", ADDRESS, List.of(JAVA_INT, ADDRESS, ADDRESS, JAVA_INT), List.of(AF_INET, sockaddr_in_local.address()+4L, ipString, ipString.byteSize()));
+                return InetAddress.ofLiteral(ipString.getString(0));
+            } else {
+                throw new RuntimeException("Error getting host IP!");
+            }
+
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
+
     }
 
     public Client accept() throws Throwable {
@@ -64,7 +81,7 @@ public class SocketServer { // todo split arenas to avoid memory leak over time
         addrLength.set(JAVA_INT, 0, (int) sockAddrStoragePeer.byteSize());
 
 
-        int c = (int) ffiHelper.callFunction("accept", JAVA_INT, List.of(JAVA_INT, ADDRESS, ADDRESS) ,List.of(socketHandle, sockAddrStoragePeer, addrLength));
+        int c = (int) ffiHelper.callFunction("accept", JAVA_INT, List.of(JAVA_INT, ADDRESS, ADDRESS), List.of(socketHandle, sockAddrStoragePeer, addrLength));
         if (c < 0) {
             // print out what went wrong
             ffiHelper.callFunction("perror", ADDRESS, List.of(ADDRESS) ,List.of(arena.allocateFrom("accept")));
