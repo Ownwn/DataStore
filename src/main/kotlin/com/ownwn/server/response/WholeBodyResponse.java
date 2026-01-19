@@ -6,7 +6,7 @@ import com.ownwn.server.JsonConvertible;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
+import com.ownwn.server.java.lang.replacement.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 

@@ -1,7 +1,9 @@
 package com.ownwn.server.sockets;
 
 import java.lang.foreign.*;
-import java.util.List;
+
+import com.ownwn.server.java.lang.replacement.ArrayList;
+import com.ownwn.server.java.lang.replacement.List;
 import java.util.stream.IntStream;
 
 import static java.lang.foreign.ValueLayout.JAVA_INT;
@@ -37,11 +39,11 @@ public class FFIHelper {
         return mh.invokeWithArguments(args);
     }
 
-    public <T extends MemoryLayout> Object callIntFunction(String name, T returnType, List<Integer> args) throws Throwable {
-        return callFunction(name, returnType, IntStream.range(0, args.size()).mapToObj(ignored -> (MemoryLayout) JAVA_INT).toList(), args.stream().map(i -> (Object) i).toList());
+    public <T extends MemoryLayout> Object callIntFunction(String name, T returnType, List<Integer> args) throws Throwable { // todo unnecessary copy constructor
+        return callFunction(name, returnType, new ArrayList<>(IntStream.range(0, args.size()).mapToObj(ignored -> (MemoryLayout) JAVA_INT).toList()), args.stream().map(i -> (Object) i).toList());
     }
 
     public <T extends MemoryLayout> Object callShortFunction(String name, T returnType, List<Short> args) throws Throwable {
-        return callFunction(name, returnType, IntStream.range(0, args.size()).mapToObj(ignored -> (MemoryLayout) JAVA_SHORT).toList(), args.stream().map(i -> (Object) i).toList());
+        return callFunction(name, returnType, new ArrayList<>(IntStream.range(0, args.size()).mapToObj(ignored -> (MemoryLayout) JAVA_SHORT).toList()), args.stream().map(i -> (Object) i).toList());
     }
 }

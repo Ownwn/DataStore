@@ -6,7 +6,7 @@ import java.io.OutputStream;
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 import java.net.InetAddress;
-import java.util.List;
+import com.ownwn.server.java.lang.replacement.List;
 
 import static java.lang.foreign.ValueLayout.ADDRESS;
 import static java.lang.foreign.ValueLayout.JAVA_BYTE;

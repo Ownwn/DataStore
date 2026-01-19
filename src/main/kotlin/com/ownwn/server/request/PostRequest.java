@@ -9,7 +9,7 @@ import com.ownwn.server.HttpMethod;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
-import java.util.List;
+import com.ownwn.server.java.lang.replacement.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

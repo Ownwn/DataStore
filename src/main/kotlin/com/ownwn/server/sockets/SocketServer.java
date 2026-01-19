@@ -3,7 +3,7 @@ package com.ownwn.server.sockets;
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 import java.net.InetAddress;
-import java.util.List;
+import com.ownwn.server.java.lang.replacement.List;
 
 import static java.lang.foreign.ValueLayout.*;
 

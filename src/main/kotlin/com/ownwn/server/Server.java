@@ -2,14 +2,14 @@ package com.ownwn.server;
 
 import com.ownwn.server.intercept.InterceptReceiver;
 import com.ownwn.server.intercept.Interceptor;
+import com.ownwn.server.java.lang.replacement.List;
 import com.ownwn.server.request.Request;
 import com.ownwn.server.response.Response;
 import com.ownwn.server.response.TemplateResponse;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import com.ownwn.server.java.lang.replacement.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class Server {
