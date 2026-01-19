@@ -56,15 +56,19 @@ public class SocketServer {
     public InetAddress getHostInetAddress() {
         if (inetAddress != null) return inetAddress;
 
-        MemorySegment sockaddr_in_local = arena.allocate(16);
+        MemorySegment sockaddr_in_local = arena.allocate(16, 2);
+        MemorySegment sock_addr_size = arena.allocate(JAVA_INT, (int) sockaddr_in_local.byteSize());
+
 
         try {
-            if ((int) ffiHelper.callFunction("getsockname", JAVA_INT, List.of(JAVA_INT, ADDRESS, JAVA_INT), List.of(socketHandle, sockaddr_in_local, sockaddr_in_local.byteSize())) == 0) {
+            int sockNameRes = (int) ffiHelper.callFunction("getsockname", JAVA_INT, List.of(JAVA_INT, ADDRESS, ADDRESS), List.of(socketHandle, sockaddr_in_local, sock_addr_size));
+            if (sockNameRes == 0L) {
                 MemorySegment ipString = arena.allocate(16);
-                ffiHelper.callFunction("inet_ntop", ADDRESS, List.of(JAVA_INT, ADDRESS, ADDRESS, JAVA_INT), List.of(AF_INET, sockaddr_in_local.address()+4L, ipString, ipString.byteSize()));
-                return InetAddress.ofLiteral(ipString.getString(0));
+                ffiHelper.callFunction("inet_ntop", ADDRESS, List.of(JAVA_INT, ADDRESS, ADDRESS, ADDRESS), List.of(AF_INET, sockaddr_in_local.asSlice(4), ipString, arena.allocate(JAVA_INT, 16)));
+                return inetAddress = InetAddress.ofLiteral(ipString.getString(0));
             } else {
-                throw new RuntimeException("Error getting host IP!");
+                ffiHelper.callFunction("perror", ADDRESS, List.of(ADDRESS) ,List.of(arena.allocateFrom("getsockname")));
+                throw new RuntimeException("Error getting host IP, reason above");
             }
 
         } catch (Throwable e) {

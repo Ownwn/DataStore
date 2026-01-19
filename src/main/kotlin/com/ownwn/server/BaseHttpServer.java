@@ -17,22 +17,23 @@ import java.util.regex.Pattern;
 
 public class BaseHttpServer {
     private final Pattern getRequestParamPattern = Pattern.compile("[?&]([^?=&]+)=([^?=&]+)"); // todo single responsibility principal?
-    SocketServer socket;
+    private final SocketServer socket;
 
     public String getAddress() {
-        if (socket == null) return "test"; //todo
         return socket.getHostInetAddress().getHostAddress();
     }
 
-    public static BaseHttpServer create(short port, Consumer<Request> handler) {
+    public static BaseHttpServer create(short port, Consumer<Request> handler) throws Throwable {
         return new BaseHttpServer(port, handler);
     }
 
 
-    private BaseHttpServer(short port, Consumer<Request> handler) {
+    private BaseHttpServer(short port, Consumer<Request> handler) throws Throwable {
+        Arena arena = Arena.ofShared();
+        socket = new SocketServer(port, arena);
+
         Thread baseServerHandlerThread = new Thread(() -> {
-            try (Arena arena = Arena.ofConfined()) {
-                socket = new SocketServer(port, arena);
+            try (arena) {
                 while (true) {
                     // todo timeout
                     Client client;

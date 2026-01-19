@@ -28,14 +28,14 @@ public class Server {
                     .getCallerClass()
                     .getPackageName();
             Server s = new Server(packageName, basePath, port);
-            System.out.println("Server started at " + s.friendlyAddress + basePath);
-        } catch (IOException e) {
+            System.out.println("Server started at http://" + s.friendlyAddress + basePath);
+        } catch (Throwable e) {
             throw new RuntimeException(e);
         }
     }
 
 
-    private Server(String packageName, String basePath, short port) throws IOException {
+    private Server(String packageName, String basePath, short port) throws Throwable {
         BaseHttpServer httpServer = BaseHttpServer.create(port, request -> {
             try {
                 handle(request);
@@ -47,7 +47,7 @@ public class Server {
         AnnotationFinder.loadAllAnnotatedMethods(packageName, handleMethods, interceptMethods);
         this.basePath = basePath;
 
-        friendlyAddress = httpServer.getAddress();
+        friendlyAddress = httpServer.getAddress() + ":" + port;
     }
 
     private void handle(Request request) throws IOException {
