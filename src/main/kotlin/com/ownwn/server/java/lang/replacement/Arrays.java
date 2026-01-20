@@ -9,4 +9,13 @@ public class Arrays {
         }
         return res;
     }
+
+    public static byte[] copyOfRange(byte[] original, int from, int to) {
+        int range = to-from;
+        byte[] res = new byte[range];
+        for (int i = 0; i < range; i++) {
+            res[i] = original[from + i];
+        }
+        return res;
+    }
 }

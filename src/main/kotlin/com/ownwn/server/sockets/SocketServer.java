@@ -19,7 +19,7 @@ public class SocketServer {
 
     public SocketServer(short port, Arena arena) throws Throwable {
 
-        ffiHelper = new FFIHelper(arena);
+        ffiHelper = FFIHelper.of();
         this.arena = arena;
 
         socketHandle = (int) ffiHelper.callIntFunction("socket", JAVA_INT, List.of(2,1,0));

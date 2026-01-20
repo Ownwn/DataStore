@@ -29,7 +29,7 @@ public abstract class Client {
                         MemorySegment buf = arena.allocate(1, 1L);
 
                         try {
-                            int numReaded = (int) ((long) FFIHelper.ofArena(arena).callFunction("read", JAVA_LONG, List.of(JAVA_INT, ADDRESS, JAVA_LONG), List.of(c, buf, buf.byteSize())));
+                            int numReaded = (int) ((long) FFIHelper.of().callFunction("read", JAVA_LONG, List.of(JAVA_INT, ADDRESS, JAVA_LONG), List.of(c, buf, buf.byteSize())));
                             if (numReaded <= 0) return -1;
 
                             return buf.get(JAVA_BYTE, 0) & 0xFF;
@@ -47,7 +47,7 @@ public abstract class Client {
                     public void write(int b) throws IOException {
                         MemorySegment resByte = arena.allocateFrom(JAVA_BYTE, (byte) b); // todo optimize chunk size
                         try {
-                            FFIHelper.ofArena(arena).callFunction("write", JAVA_LONG, List.of(JAVA_INT, ADDRESS, JAVA_LONG), List.of(c, resByte, 1));
+                            FFIHelper.of().callFunction("write", JAVA_LONG, List.of(JAVA_INT, ADDRESS, JAVA_LONG), List.of(c, resByte, 1));
                         } catch (Throwable e) {
                             throw new IOException(e);
                         }
@@ -58,7 +58,7 @@ public abstract class Client {
                     public void close() throws IOException {
                         super.close(); // todo close client when done! important!
                         try {
-                            FFIHelper.ofArena(arena).callIntFunction("close", JAVA_INT, List.of(c));
+                            FFIHelper.of().callIntFunction("close", JAVA_INT, List.of(c));
                         } catch (Throwable e) {
                             throw new IOException(e);
                         }

@@ -1,8 +1,13 @@
 package com.ownwn.server;
 
+import com.ownwn.server.java.lang.replacement.ArrayList;
+import com.ownwn.server.java.lang.replacement.Arrays;
+import com.ownwn.server.java.lang.replacement.List;
+
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 

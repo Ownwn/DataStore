@@ -1,10 +1,14 @@
 package com.ownwn.server.java.lang.replacement;
 
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Collection;
 import java.util.Iterator;
+import java.util.ListIterator;
 import java.util.function.Function;
 
 @SuppressWarnings("unchecked")
-public final class ArrayList<T> implements List<T> {
+public class ArrayList<T> implements List<T> {
     Object[] array;
     int currentSize = 0;
 
@@ -82,6 +86,57 @@ public final class ArrayList<T> implements List<T> {
     }
 
     @Override
+    public boolean containsAll(@NotNull Collection<?> c) {
+        for (var item : c) {
+            if (!contains(item)) return false;
+        }
+        return true;
+    }
+
+    @Override
+    public boolean addAll(@NotNull Collection<? extends T> c) {
+        for (var item : c) {
+            add(item);
+        }
+        return true;
+    }
+
+    @Override
+    public boolean addAll(int index, @NotNull Collection<? extends T> c) {
+        for (var item : c) {
+            add(index, item);
+        }
+        return true;
+    }
+
+    @Override
+    public boolean removeAll(@NotNull Collection<?> c) {
+        for (var item : c) {
+            remove(item);
+        }
+        return true;
+    }
+
+    @Override
+    public boolean retainAll(@NotNull Collection<?> c) {
+        List<T> toRemove = new ArrayList<>();
+
+        for (int i = 0; i < size(); i++) {
+            var item = get(i);
+            if (!c.contains(item)) toRemove.add(item);
+        }
+        for (var item : toRemove) {
+            remove(item);
+        }
+        return true;
+    }
+
+    @Override
+    public void clear() {
+        currentSize = 0;
+    }
+
+    @Override
     public T get(int index) {
         return (T) array[index];
     }
@@ -91,6 +146,47 @@ public final class ArrayList<T> implements List<T> {
         Object old = array[index];
         array[index] = elem;
         return (T) old;
+    }
+
+    @Override
+    public T remove(int index) {
+        return null;
+    }
+
+    @Override
+    public int indexOf(Object o) {
+        for (int i = 0; i < size(); i++) {
+            var item = get(i);
+            if (Objects.equals(item, o)) return i;
+        }
+        return -1;
+    }
+
+    @Override
+    public int lastIndexOf(Object o) {
+        for (int i = size()-1; i >= 0; i--) {
+            var item = get(i);
+            if (Objects.equals(item, o)) return i;
+        }
+        return -1;
+    }
+
+    @NotNull
+    @Override
+    public ListIterator<T> listIterator() {
+        return null;
+    }
+
+    @NotNull
+    @Override
+    public ListIterator<T> listIterator(int index) {
+        return null;
+    }
+
+    @NotNull
+    @Override
+    public List<T> subList(int fromIndex, int toIndex) {
+        return null;
     }
 
     @Override

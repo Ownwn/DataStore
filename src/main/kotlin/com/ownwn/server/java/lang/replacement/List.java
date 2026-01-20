@@ -1,6 +1,6 @@
 package com.ownwn.server.java.lang.replacement;
 
-public interface List<T> extends Iterable<T> {
+public interface List<T> extends Iterable<T>, java.util.List<T> {
 
     int size();
 
@@ -24,5 +24,37 @@ public interface List<T> extends Iterable<T> {
 
     T[] toArray(Object[] arr);
 
-    Stream<T> stream();
+    @SafeVarargs // todo bad?
+    static <T> List<T> of(T... values) {
+        List<T> res = new ArrayList<>() {
+            @Override
+            public boolean add(Object o) {
+                throw new UnsupportedOperationException("Cannot modify immutable list");
+            }
+
+            @Override
+            public T set(int index, T elem) {
+                throw new UnsupportedOperationException("Cannot modify immutable list");
+            }
+
+            @Override
+            public boolean remove(Object o) {
+                throw new UnsupportedOperationException("Cannot modify immutable list");
+            }
+
+            @Override
+            public void add(int index, Object elem) {
+                throw new UnsupportedOperationException("Cannot modify immutable list");
+            }
+        };
+        for (var value : values) {
+            res.add(value);
+        }
+        return res;
+    }
+
+    @Override
+    default Stream<T> stream() {
+        return new Stream<>();
+    }
 }
