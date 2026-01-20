@@ -1,11 +1,45 @@
 package com.ownwn.server.java.lang.replacement.test;
 
+import com.ownwn.server.java.lang.replacement.ArrayList;
 import com.ownwn.server.java.lang.replacement.HashMap;
+import com.ownwn.server.java.lang.replacement.List;
 import com.ownwn.server.java.lang.replacement.Map;
 
-public class HashMapTests {
+public class Tests {
 
     static void main() {
+        listTest();
+        hashMapTest();
+    }
+
+    static void listTest() {
+        List<Integer> l = new ArrayList<>();
+        java.util.List<Integer> l2 = new java.util.ArrayList<>();
+
+        for (int i = 0; i < 10000; i++) {
+            int random = (int) (100 * Math.random());
+
+            l.add(random);
+            l2.add(random);
+
+            if (l.size() != l2.size()) {
+                throw new Error("size");
+            }
+
+            if (!l.equals(l2)) {
+                throw new Error("equals");
+            }
+
+            if (Math.random() < 0.5) {
+                int index = (int) (Math.random() * l.size());
+                l.remove(index);
+                l2.remove(index);
+            }
+        }
+
+    }
+
+    static void hashMapTest() {
         Map<Integer, Integer> map = new HashMap<>();
         java.util.Map<Integer, Integer> map2 = new java.util.HashMap<>();
 

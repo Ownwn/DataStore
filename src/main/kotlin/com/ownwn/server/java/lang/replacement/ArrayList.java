@@ -82,7 +82,19 @@ public class ArrayList<T> implements List<T> {
 
     @Override
     public boolean remove(Object o) {
-        return false;
+        int index = -1;
+        for (int i = 0; i < size(); i++) {
+            if (Objects.equals(array[i], o)) {
+                index = i;
+                break;
+            }
+        }
+        if (index == -1) return false;
+
+        remove(index);
+
+
+        return true;
     }
 
     @Override
@@ -150,7 +162,12 @@ public class ArrayList<T> implements List<T> {
 
     @Override
     public T remove(int index) {
-        return null;
+        T old = (T) array[index];
+        for (int i = index; i < currentSize-1; i++) {
+            swap(i, i+1);
+        }
+        currentSize--;
+        return old;
     }
 
     @Override
@@ -270,5 +287,11 @@ public class ArrayList<T> implements List<T> {
                 return (T) ArrayList.this.array[i++];
             }
         };
+    }
+
+    private void swap(int firstIndex, int secondIndex) {
+        Object temp = array[firstIndex];
+        array[firstIndex] = array[secondIndex];
+        array[secondIndex] = temp;
     }
 }
