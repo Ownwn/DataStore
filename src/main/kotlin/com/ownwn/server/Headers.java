@@ -1,6 +1,10 @@
 package com.ownwn.server;
 
-import java.util.*;
+
+import com.ownwn.server.java.lang.replacement.*;
+
+import java.util.Arrays;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 public class Headers {
@@ -9,7 +13,7 @@ public class Headers {
     public Headers(com.sun.net.httpserver.Headers headers) {
         this();
         for (var header : headers.entrySet()) {
-            internalHeaders.put(header.getKey(), header.getValue().get(0));
+            internalHeaders.put(header.getKey(), header.getValue().getFirst());
         }
     }
 
@@ -63,7 +67,7 @@ public class Headers {
     private String capitalise(String s) {
         return Arrays.stream(s.split("-"))
                 .map(str -> (str.charAt(0) + "").toUpperCase(Locale.ROOT) + str.substring(1).toLowerCase(Locale.ROOT))
-                .collect(Collectors.joining("-"));
+                .collect(Collectors.joining().joining("-"));
     }
 
 

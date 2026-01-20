@@ -1,9 +1,6 @@
 package com.ownwn.server.java.lang.replacement;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Collection;
-import java.util.Iterator;
 
 public class HashMap<K, V> implements Map<K, V> { // todo store size field for faster computation
     // todo handle mutable keys, will be slow but need to deal with them
@@ -123,7 +120,9 @@ public class HashMap<K, V> implements Map<K, V> { // todo store size field for f
 
     @Override
     public void putAll(java.util.Map<? extends K, ? extends V> m) {
-
+        for (var entry : m.entrySet()) {
+            put(entry.getKey(), entry.getValue());
+        }
     }
 
     @Override

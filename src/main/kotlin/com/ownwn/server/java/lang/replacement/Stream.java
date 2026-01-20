@@ -147,28 +147,49 @@ public class Stream<T> implements java.util.stream.Stream<T> {
 
     @Override
     public T reduce(T identity, BinaryOperator<T> accumulator) {
-        return null;
+        T res = underlying.getFirst();
+        for (int i = 1; i < underlying.size(); i++) {
+            res = accumulator.apply(res, underlying.get(i));
+        }
+        return res;
     }
 
     @NotNull
     @Override
     public Optional<T> reduce(BinaryOperator<T> accumulator) {
-        return Optional.empty();
+        if (underlying.isEmpty()) return Optional.empty();
+        T res = underlying.getFirst();
+        for (int i = 1; i < underlying.size(); i++) {
+            res = accumulator.apply(res, underlying.get(i));
+        }
+        return Optional.of(res);
     }
 
     @Override
     public <U> U reduce(U identity, BiFunction<U, ? super T, U> accumulator, BinaryOperator<U> combiner) {
-        return null;
+        U current = identity;
+        for (T t : underlying) {
+            current = accumulator.apply(current, t);
+        }
+        return current;
     }
 
     @Override
     public <R> R collect(Supplier<R> supplier, BiConsumer<R, ? super T> accumulator, BiConsumer<R, R> combiner) {
-        return null;
+        R res = supplier.get();
+        for (T t : underlying) {
+            accumulator.accept(res, t);
+        }
+        return res;
     }
 
     @Override
     public <R, A> R collect(Collector<? super T, A, R> collector) {
-        return null;
+        A res = collector.supplier().get();
+        for (T t : underlying) {
+            collector.accumulator().accept(res, t);
+        }
+        return collector.finisher().apply(res);
     }
 
     public List<T> toList() {
