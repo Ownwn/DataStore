@@ -1,13 +1,15 @@
 package com.ownwn.server.java.lang.replacement;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Collection;
-import java.util.Set;
+import java.util.Iterator;
 
 public class HashMap<K, V> implements Map<K, V> { // todo store size field for faster computation
     // todo handle mutable keys, will be slow but need to deal with them
     private static final double loadFactor = 0.75;
     private static final int nullHash = 29283873;
-    private List<List<Entry<K, V>>> buckets;
+    List<List<Entry<K, V>>> buckets;
     private int numItems = 0;
 
     public HashMap() {
@@ -134,22 +136,90 @@ public class HashMap<K, V> implements Map<K, V> { // todo store size field for f
 
     @Override
     public Set<K> keySet() {
-        return Set.of();
+        var entries = entrySet();
+        Set<K> keySet = new HashSet<>();
+        for (var entry : entries) {
+            keySet.add(entry.getKey());
+        }
+        return keySet;
     }
 
     @Override
     public Collection<V> values() {
-        return List.of();
+        var entries = entrySet();
+        Set<V> valueSet = new HashSet<>();
+        for (var entry : entries) {
+            valueSet.add(entry.getValue());
+        }
+        return valueSet;
     }
 
     @Override
     public Set<java.util.Map.Entry<K, V>> entrySet() {
-        return Set.of(); // todo
+        Set<java.util.Map.Entry<K, V>> set = new HashSet<>();
+
+        for (var bucket : buckets) {
+            for (var item : bucket) set.add(item);
+        }
+        return set;
     }
 
 
-    public record Entry<K, V>(K key, V value) {
-    }
+    public static final class Entry<K, V> implements java.util.Map.Entry<K, V> {
+        private final K key;
+        private V value;
+
+        public Entry(K key, V value) {
+            this.key = key;
+            this.value = value;
+        }
+
+        @Override
+            public K getKey() {
+                return key;
+            }
+
+            @Override
+            public V getValue() {
+                return value;
+            }
+
+            @Override
+            public V setValue(V value) {
+                V old = this.value;
+                this.value = value;
+                return old;
+            }
+
+        public K key() {
+            return key;
+        }
+
+        public V value() {
+            return value;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == this) return true;
+            if (!(obj instanceof java.util.Map.Entry<?, ?> entry)) return false;
+            return java.util.Objects.equals(this.key, entry.getKey()) &&
+                    java.util.Objects.equals(this.value, entry.getValue());
+        }
+
+        @Override
+        public int hashCode() {
+            return java.util.Objects.hash(key, value);
+        }
+
+        @Override
+        public String toString() {
+            return "Entry[" +
+                    "key=" + key + ", " +
+                    "value=" + value + ']';
+        }
+
+        }
 
     @Override
     public String toString() {

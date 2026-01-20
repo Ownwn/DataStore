@@ -1,15 +1,40 @@
 package com.ownwn.server.java.lang.replacement.test;
 
-import com.ownwn.server.java.lang.replacement.ArrayList;
-import com.ownwn.server.java.lang.replacement.HashMap;
-import com.ownwn.server.java.lang.replacement.List;
-import com.ownwn.server.java.lang.replacement.Map;
+import com.ownwn.server.java.lang.replacement.*;
 
 public class Tests {
 
     static void main() {
         listTest();
         hashMapTest();
+        hashSetTest();
+    }
+
+    static void hashSetTest() {
+        Set<Integer> set = new HashSet<>();
+        java.util.Set<Integer> set2 = new java.util.HashSet<>();
+
+
+        for (int i = 0; i < 1000000; i++) {
+            int random = (int) (100 * Math.random());
+
+            set.add(random);
+            set2.add(random);
+
+            if (set.size() != set2.size()) {
+                throw new Error("size");
+            }
+
+            if (!set.equals(set2)) {
+                    throw new Error("equals\n" + set + " " + set2);
+            }
+
+            if (Math.random() < 0.5) {
+                set.remove(random+1);
+                set2.remove(random+1);
+            }
+
+        }
     }
 
     static void listTest() {
