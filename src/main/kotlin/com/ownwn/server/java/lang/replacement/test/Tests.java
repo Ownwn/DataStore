@@ -5,9 +5,42 @@ import com.ownwn.server.java.lang.replacement.*;
 public class Tests {
 
     static void main() {
-        listTest();
-        hashMapTest();
-        hashSetTest();
+//        listTest();
+//        hashMapTest();
+//        hashSetTest();
+        streamTest();
+    }
+
+    static void streamTest() {
+        List<Integer> l = new ArrayList<>();
+        java.util.List<Integer> l2 = new java.util.ArrayList<>();
+
+        for (int i = 0; i < 10000; i++) {
+            int random = (int) (100 * Math.random());
+
+            l.add(random);
+            l2.add(random);
+        }
+
+        List<Integer> l3 = new ArrayList<>();
+        l3.add(1);
+        l3.add(2);
+        l3.add(4);
+
+        List<Integer> l4 = new ArrayList<>();
+        l4.add(3);
+        l4.add(6);
+        l4.add(12);
+
+        if (!l3.stream().map(i -> i*3).toList().equals(l4)) {
+            throw new Error("bad map");
+        }
+
+        if (!l.stream().toList().equals(l)) {
+            throw new Error("bad toList \n" + l + "\n" + l.stream().toList());
+        }
+
+
     }
 
     static void hashSetTest() {
@@ -51,7 +84,7 @@ public class Tests {
                 throw new Error("size");
             }
 
-            if (!l.equals(l2)) {
+            if (!l.equals(l2) || !l.equals(l)) {
                 throw new Error("equals");
             }
 

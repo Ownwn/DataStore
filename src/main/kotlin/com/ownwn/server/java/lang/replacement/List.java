@@ -1,5 +1,7 @@
 package com.ownwn.server.java.lang.replacement;
 
+import org.jetbrains.annotations.NotNull;
+
 public interface List<T> extends Iterable<T>, java.util.List<T> {
 
     int size();
@@ -23,6 +25,9 @@ public interface List<T> extends Iterable<T>, java.util.List<T> {
     T[] toArray();
 
     T[] toArray(Object[] arr);
+
+    @Override
+    List<T> subList(int fromIndex, int toIndex);
 
     @SafeVarargs // todo bad?
     static <T> List<T> of(T... values) {
@@ -55,6 +60,7 @@ public interface List<T> extends Iterable<T>, java.util.List<T> {
 
     @Override
     default Stream<T> stream() {
-        return new Stream<>();
+        var self = this;
+        return new Stream<>() {{underlying = self;}};
     }
 }

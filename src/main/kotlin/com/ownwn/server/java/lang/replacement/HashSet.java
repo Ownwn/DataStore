@@ -13,6 +13,13 @@ public class HashSet<T> implements Set<T> {
         map = new HashMap<>();
     }
 
+    public HashSet(Collection<T> col) {
+        map = new HashMap<>();
+        for (T t : col) {
+            add(t);
+        }
+    }
+
     @Override
     public int size() {
         return map.size();

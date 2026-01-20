@@ -12,11 +12,11 @@ import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 
-public class Stream<T> implements Cloneable, java.util.stream.Stream<T> {
-    private List<T> underlying;
+public class Stream<T> implements java.util.stream.Stream<T> {
+    List<T> underlying;
     private List<Function<T, T>> operations;
     static <T> Stream<T> empty() {
-        return null; // todo
+        return new Stream<>();
 
     }
 
@@ -25,15 +25,31 @@ public class Stream<T> implements Cloneable, java.util.stream.Stream<T> {
         underlying = col; // todo mutate by someone else bad
     }
 
-    Stream() {}
+    Stream() {
+        underlying = new ArrayList<>();
+    }
 
     @Override
     public Stream<T> filter(Predicate<? super T> predicate) {
-        return new Stream<>();
+        return new Stream<>() {
+            {
+                for (var t : Stream.this.underlying) {
+                    if (predicate.test(t)) {
+                        underlying.add(t);
+                    }
+                }
+            }
+        };
     }
 
     public <R> Stream<R> map(Function<? super T, ? extends R> mapper) {
-        return null;// todo
+        return new Stream<R>() {
+            {
+                for (var t : Stream.this.underlying) {
+                    underlying.add(mapper.apply(t));
+                }
+            }
+        };
     }
 
     @Override
@@ -72,38 +88,44 @@ public class Stream<T> implements Cloneable, java.util.stream.Stream<T> {
     }
 
     @Override
-    public java.util.stream.Stream<T> distinct() {
-        return java.util.stream.Stream.empty();
+    public Stream<T> distinct() {
+        Set<T> set = new HashSet<>(underlying);
+        underlying = new ArrayList<>(set);
+        return this;
     }
 
     @Override
-    public java.util.stream.Stream<T> sorted() {
-        return java.util.stream.Stream.empty();
+    public Stream<T> sorted() {
+        return null;
     }
 
     @Override
-    public java.util.stream.Stream<T> sorted(Comparator<? super T> comparator) {
-        return java.util.stream.Stream.empty();
+    public Stream<T> sorted(Comparator<? super T> comparator) {
+        underlying.sort(comparator);
+        return this;
     }
 
     @Override
-    public java.util.stream.Stream<T> peek(Consumer<? super T> action) {
-        return java.util.stream.Stream.empty();
+    public Stream<T> peek(Consumer<? super T> action) {
+        for (T t : underlying) action.accept(t);
+        return this;
     }
 
     @Override
-    public java.util.stream.Stream<T> limit(long maxSize) {
-        return java.util.stream.Stream.empty();
+    public Stream<T> limit(long maxSize) {
+        underlying = underlying.subList(0, (int) maxSize);
+        return this;
     }
 
     @Override
-    public java.util.stream.Stream<T> skip(long n) {
-        return java.util.stream.Stream.empty();
+    public Stream<T> skip(long n) {
+        underlying = underlying.subList(1, underlying.size());
+        return this;
     }
 
     @Override
     public void forEach(Consumer<? super T> action) {
-
+        for (T t : underlying) action.accept(t);
     }
 
     @Override
@@ -156,54 +178,61 @@ public class Stream<T> implements Cloneable, java.util.stream.Stream<T> {
     @NotNull
     @Override
     public Optional<T> min(Comparator<? super T> comparator) {
-        return Optional.empty();
+        return max(comparator.reversed());
     }
 
     @NotNull
     @Override
     public Optional<T> max(Comparator<? super T> comparator) {
-        return Optional.empty();
+        if (underlying.isEmpty()) return Optional.empty();
+        T best = underlying.getFirst();
+        for (int i = 1; i < underlying.size(); i++) {
+            best = comparator.compare(best, underlying.get(i)) >= 0 ? best : underlying.get(i);
+        }
+        return Optional.of(best);
     }
 
     @Override
     public long count() {
-        return 0;
+        return underlying.size();
     }
 
     @Override
     public boolean anyMatch(Predicate<? super T> predicate) {
+        for (T t : underlying) {
+            if (predicate.test(t)) return true;
+        }
         return false;
     }
 
     @Override
     public boolean allMatch(Predicate<? super T> predicate) {
-        return false;
+        for (T t : underlying) {
+            if (!predicate.test(t)) return false;
+        }
+        return true;
     }
 
     @Override
     public boolean noneMatch(Predicate<? super T> predicate) {
-        return false;
+        for (T t : underlying) {
+            if (predicate.test(t)) return false;
+        }
+        return true;
     }
 
     @NotNull
     @Override
     public Optional<T> findFirst() {
-        return Optional.empty();
+        if (underlying.isEmpty()) return Optional.empty();
+        return Optional.of(underlying.getFirst());
     }
 
     @NotNull
     @Override
     public Optional<T> findAny() {
-        return Optional.empty();
-    }
-
-    @Override
-    protected Stream<T> clone() {
-        return new Stream<>() {
-            {
-                operations = new ArrayList<>(operations);
-            }
-        };
+        if (underlying.isEmpty()) return Optional.empty();
+        return Optional.of(underlying.getFirst());
     }
 
     public String collect(Object o) {
@@ -213,7 +242,7 @@ public class Stream<T> implements Cloneable, java.util.stream.Stream<T> {
     @NotNull
     @Override
     public Iterator<T> iterator() {
-        return null;
+        return underlying.iterator();
     }
 
     @NotNull

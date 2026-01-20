@@ -45,7 +45,7 @@ public class ArrayList<T> implements List<T> {
     }
 
     /** shallow copy constructor */
-    public ArrayList(java.util.List<T> list) {
+    public ArrayList(Collection<T> list) {
         for (T t : list) {
             add(t);
         }
@@ -188,19 +188,16 @@ public class ArrayList<T> implements List<T> {
         return -1;
     }
 
-    @NotNull
     @Override
     public ListIterator<T> listIterator() {
         return null;
     }
 
-    @NotNull
     @Override
     public ListIterator<T> listIterator(int index) {
         return null;
     }
 
-    @NotNull
     @Override
     public List<T> subList(int fromIndex, int toIndex) {
         return null;
@@ -251,14 +248,21 @@ public class ArrayList<T> implements List<T> {
 
     @Override
     public boolean equals(Object obj) {
-        if (!(obj instanceof java.util.ArrayList<?> l2)) {
-            return false;
+        if (obj instanceof java.util.ArrayList<?> l2) {
+            if (l2.size() != size()) return false;
+            for (int i = 0; i < size(); i++) {
+                if (!Objects.equals(l2.get(i), get(i))) return false;
+            }
+            return true;
+        } else if (obj instanceof ArrayList<?> l2) {
+            if (l2.size() != size()) return false;
+            for (int i = 0; i < size(); i++) {
+                if (!Objects.equals(l2.get(i), get(i))) return false;
+            }
+            return true;
         }
-        if (l2.size() != size()) return false;
-        for (int i = 0; i < size(); i++) {
-            if (!Objects.equals(l2.get(i), get(i))) return false;
-        }
-        return true;
+        return false;
+
     }
 
     @Override
