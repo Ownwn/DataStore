@@ -5,7 +5,6 @@ import com.ownwn.server.java.lang.replacement.*;
 
 import java.util.Arrays;
 import java.util.Locale;
-import java.util.stream.Collectors;
 
 public class Headers {
     private final Map<String, String> internalHeaders;
@@ -67,7 +66,7 @@ public class Headers {
     private String capitalise(String s) {
         return Arrays.stream(s.split("-"))
                 .map(str -> (str.charAt(0) + "").toUpperCase(Locale.ROOT) + str.substring(1).toLowerCase(Locale.ROOT))
-                .collect(Collectors.joining().joining("-"));
+                .collect(Collectors.joining("-"));
     }
 
 

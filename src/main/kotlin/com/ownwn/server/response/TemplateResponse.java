@@ -1,5 +1,7 @@
 package com.ownwn.server.response;
 
+import com.ownwn.server.java.lang.replacement.Optional;
+
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -7,7 +9,6 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Optional;
 
 public class TemplateResponse extends Response {
     public static final String templatesDirectory = "templates/";

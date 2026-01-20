@@ -3,14 +3,14 @@ package com.ownwn.server.request;
 
 import com.ownwn.server.Headers;
 import com.ownwn.server.HttpMethod;
+import com.ownwn.server.java.lang.replacement.HashMap;
+import com.ownwn.server.java.lang.replacement.Map;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
 
 public abstract class Request {
     protected final InetAddress remoteAddress;

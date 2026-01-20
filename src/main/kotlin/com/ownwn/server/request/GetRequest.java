@@ -3,11 +3,11 @@ package com.ownwn.server.request;
 
 import com.ownwn.server.Headers;
 import com.ownwn.server.HttpMethod;
+import com.ownwn.server.java.lang.replacement.Map;
 
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
-import java.util.Map;
 
 public class GetRequest extends Request {
 

@@ -1,6 +1,7 @@
 package com.ownwn.server.response;
 
 import com.ownwn.server.Headers;
+import com.ownwn.server.java.lang.replacement.Optional;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -8,7 +9,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.util.Optional;
 
 public abstract class Response {
     protected Headers headers = new Headers() {{

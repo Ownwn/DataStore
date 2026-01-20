@@ -10,7 +10,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import com.ownwn.server.java.lang.replacement.List;
-import java.util.Map;
+import com.ownwn.server.java.lang.replacement.Map;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 

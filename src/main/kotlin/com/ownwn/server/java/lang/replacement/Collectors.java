@@ -9,34 +9,33 @@ import java.util.stream.Collector;
 
 public class Collectors {
 
-    public static Collector<CharSequence, ?, String> joining(String s) {
+    public static Collector<CharSequence, StringBuilder, String> joining(String s) {
         return new Collector<>() {
-            private final StringBuilder builder = new StringBuilder();
-
+            private boolean added = false;
             @Override
-            public Supplier<Object> supplier() {
+            public Supplier<StringBuilder> supplier() {
                 return StringBuilder::new;
             }
 
             @Override
-            public BiConsumer<Object, CharSequence> accumulator() {
-                return StringBuilder::append;
+            public BiConsumer<StringBuilder, CharSequence> accumulator() {
+                return (sb, cs) -> {added = true; sb.append(s).append(cs);};
             }
 
             @Override
-            public BinaryOperator<Object> combiner() {
-                return (o1, o2) -> (Object) o1 + o2;
+            public BinaryOperator<StringBuilder> combiner() {
+                return (o1, o2) -> new StringBuilder(o1).append(s).append(o2);
             }
 
             @Override
-            public Function<Object, String> finisher() {
-                return Object::toString;
+            public Function<StringBuilder, String> finisher() {
+                return sb -> {if (added) {sb.delete(sb.length()-1-s.length(), sb.length()); } return sb.toString();};
             }
 
             @Override
             public Set<Characteristics> characteristics() {
                 return Set.of();
             }
-        }
+        };
     }
 }
