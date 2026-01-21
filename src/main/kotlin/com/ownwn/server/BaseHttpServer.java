@@ -38,7 +38,6 @@ public class BaseHttpServer {
         Thread baseServerHandlerThread = new Thread(() -> {
             try (arena) {
                 while (true) {
-                    // todo timeout
                     Client client;
                     try {
                         client = socket.accept();

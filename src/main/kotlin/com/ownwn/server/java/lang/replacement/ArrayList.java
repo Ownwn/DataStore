@@ -12,23 +12,6 @@ public class ArrayList<T> implements List<T> {
     Object[] array;
     int currentSize = 0;
 
-    static void main() {
-        List<Integer> l = new ArrayList<>();
-        java.util.List<Integer> l2 = new java.util.ArrayList<>();
-        for (int i = 0; i < 10000; i++) {
-//            if (l.toString().intern() != l2.toString().intern()) throw new Error(l.toString() + " " + l2.toString());
-            l.add(i);
-            l2.add(i);
-            if (!l.equals(l2)) throw new Error("nah");
-        }
-
-        for (int h : l) {
-            System.out.println(h);
-        }
-        l.add(1);
-    }
-
-
     public ArrayList() {
         this(32);
     }
@@ -39,16 +22,12 @@ public class ArrayList<T> implements List<T> {
 
     /** shallow copy constructor */
     public ArrayList(List<T> list) {
-        for (T t : list) {
-            add(t);
-        }
+        addAll(list);
     }
 
     /** shallow copy constructor */
     public ArrayList(Collection<T> list) {
-        for (T t : list) {
-            add(t);
-        }
+        addAll(list);
     }
 
     @Override
@@ -69,11 +48,15 @@ public class ArrayList<T> implements List<T> {
         return false;
     }
 
-    @Override
-    public boolean add(Object o) {
-        if (currentSize >= array.length) {
+    private void ensureCapacity() {
+        if (currentSize >= array.length-1) {
             array = Arrays.copyOf(array, currentSize*2);
         }
+    }
+
+    @Override
+    public boolean add(Object o) {
+        ensureCapacity();
 
         array[currentSize++] = o;
 
@@ -232,7 +215,22 @@ public class ArrayList<T> implements List<T> {
 
     @Override
     public void add(int index, Object elem) {
-        // todo
+        if (index > currentSize) {
+            throw new ArrayIndexOutOfBoundsException("Index " + index + " with size " + currentSize);
+        }
+        if (index == currentSize) {
+            add(elem);
+            return;
+        }
+
+        ensureCapacity();
+
+        currentSize++;
+        for (int i = currentSize; i > index; i--) {
+            swap(i, i-1);
+        }
+
+        set(index, (T) elem);
     }
 
     @Override

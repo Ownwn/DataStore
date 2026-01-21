@@ -5,10 +5,10 @@ import com.ownwn.server.java.lang.replacement.*;
 public class Tests {
 
     static void main() {
-//        listTest();
+        listTest();
 //        hashMapTest();
 //        hashSetTest();
-        streamTest();
+//        streamTest();
     }
 
     static void streamTest() {
@@ -92,6 +92,13 @@ public class Tests {
                 int index = (int) (Math.random() * l.size());
                 l.remove(index);
                 l2.remove(index);
+            }
+
+            if (Math.random() < 0.3) {
+                int index = (int) (Math.random() * l.size());
+                int rann = (int) (Math.random() * l.size());
+                l.add(index, rann);
+                l2.add(index, rann);
             }
         }
 

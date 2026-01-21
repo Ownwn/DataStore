@@ -14,15 +14,14 @@ import java.util.stream.LongStream;
 
 public class Stream<T> implements java.util.stream.Stream<T> {
     List<T> underlying;
-    private List<Function<T, T>> operations;
+
     static <T> Stream<T> empty() {
         return new Stream<>();
-
     }
 
 
     Stream(List<T> col) {
-        underlying = col; // todo mutate by someone else bad
+        underlying = new ArrayList<>(col);
     }
 
     Stream() {
