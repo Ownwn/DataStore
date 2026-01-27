@@ -31,12 +31,7 @@ public interface List<T> extends Iterable<T>, java.util.List<T> {
 
     @SafeVarargs // todo bad?
     static <T> List<T> of(T... values) {
-        List<T> res = new ArrayList<>() {
-            @Override
-            public boolean add(Object o) {
-                throw new UnsupportedOperationException("Cannot modify immutable list");
-            }
-
+        List<T> res = new ArrayList<>() { // todo need to make add() immutable, but then cant add ~20 lines below!
             @Override
             public T set(int index, T elem) {
                 throw new UnsupportedOperationException("Cannot modify immutable list");

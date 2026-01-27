@@ -5,10 +5,16 @@ import com.ownwn.server.java.lang.replacement.*;
 public class Tests {
 
     static void main() {
-        listTest();
+//        listTest();
 //        hashMapTest();
 //        hashSetTest();
 //        streamTest();
+        fileTest();
+    }
+
+    static void fileTest() {
+        File f = new File("/home/owen");
+        var res = f.listFiles();
     }
 
     static void streamTest() {
