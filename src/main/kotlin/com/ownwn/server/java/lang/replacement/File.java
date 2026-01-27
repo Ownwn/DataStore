@@ -1,53 +1,45 @@
 package com.ownwn.server.java.lang.replacement;
 
 import com.ownwn.server.sockets.FFIHelper;
+import org.jetbrains.annotations.NotNull;
 
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.ValueLayout;
 
-public class File {
-    private final String path;
-
-    public File(String path) {
-        this.path = path;
-    }
+public record File(String path) {
 
     public File[] listFiles() { // todo proper arena shit
+        List<File> files = new ArrayList<>();
         try (Arena a = Arena.ofConfined()) {
             FFIHelper ffiHelper = FFIHelper.of();
             MemorySegment DIR_p = a.allocate(8);
             MemorySegment dirName = a.allocateFrom(path);
 
-            int res = -1;
             try {
-
                 DIR_p = (MemorySegment) ffiHelper.callFunction("opendir", ValueLayout.ADDRESS, List.of(ValueLayout.ADDRESS), List.of(dirName));
                 if (DIR_p.equals(MemorySegment.NULL)) {
-                    throw new Error("nah");
+                    throw new Error("can't list files");
                 }
-                MemorySegment dirent_p = a.allocate(280);
-                dirent_p = (MemorySegment) ffiHelper.callFunction("readdir", ValueLayout.ADDRESS, List.of(ValueLayout.ADDRESS), List.of(DIR_p));
-                MemorySegment good = dirent_p.reinterpret(280);
-                System.out.println(good.byteSize());
-                for (int i = 0; i < 260; i++) {
-                    String s = good.getString(i);
-                    if (s.equals(".gitignore")) {
-                        System.out.println("git at " + i);
-                    }
+
+                MemorySegment dirent_p;
+
+                while (!(dirent_p = (MemorySegment) ffiHelper.callFunction("readdir", ValueLayout.ADDRESS, List.of(ValueLayout.ADDRESS), List.of(DIR_p))).equals(MemorySegment.NULL)) {
+                    MemorySegment dirent = dirent_p.reinterpret(280);
+                    String fileName = dirent.getString(19);
+                    files.add(new File(fileName));
                 }
-                String file_name = good.getString(14);
-                System.out.println(file_name);
             } catch (Throwable e) {
                 throw new RuntimeException(e);
             }
 
-
-
-
-            System.out.println("got " + res);
+            return files.toArray(new File[files.size()]);
         }
-        return null;
     }
 
+    @NotNull
+    @Override
+    public String toString() {
+        return "File[" + path + "]";
+    }
 }

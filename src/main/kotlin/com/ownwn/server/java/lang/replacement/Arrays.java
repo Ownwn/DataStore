@@ -18,4 +18,14 @@ public class Arrays {
         }
         return res;
     }
+
+    public static String toString(Object[] arr) {
+        StringBuilder res = new StringBuilder();
+        res.append('[');
+        for (var o : arr) {
+            res.append(o.toString()).append(", ");
+        }
+        if (arr.length != 0) res.delete(res.length()-2, res.length());
+        return res.append(']').toString();
+    }
 }

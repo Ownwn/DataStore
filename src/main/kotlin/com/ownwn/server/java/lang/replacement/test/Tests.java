@@ -13,8 +13,9 @@ public class Tests {
     }
 
     static void fileTest() {
-        File f = new File("/home/owen");
+        File f = new File("/home/owen/files");
         var res = f.listFiles();
+        System.out.println(Arrays.toString(res));
     }
 
     static void streamTest() {
