@@ -21,6 +21,12 @@ public class Tests {
         File sec = new File("/home/owen/files/first");
         var res2 = sec.listFiles();
         System.out.println(Arrays.toString(res2));
+
+        System.out.println(sec.exists());
+        System.out.println(new File("FOO/ASDASDASFDSDFSDFAS").exists());
+
+        System.out.println(f.isDirectory());
+        System.out.println(sec.isDirectory());
     }
 
     static void streamTest() {

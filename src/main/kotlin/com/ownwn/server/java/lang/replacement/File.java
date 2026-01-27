@@ -1,13 +1,40 @@
 package com.ownwn.server.java.lang.replacement;
 
 import com.ownwn.server.sockets.FFIHelper;
-import org.jetbrains.annotations.NotNull;
 
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.ValueLayout;
+import java.util.Objects;
 
-public record File(String path) {
+public final class File {
+    private final String path;
+
+    public File(String path) {
+        this.path = path;
+    }
+
+    public boolean isDirectory() {
+        return listFiles().length != 0; // cant cache this, since it might change between calls!
+    }
+
+    public boolean exists() {
+        try (Arena a = Arena.ofConfined()) {
+            FFIHelper ffiHelper = FFIHelper.of();
+            try {
+                MemorySegment fileNameMemory = a.allocateFrom(path);
+                int res = (int) ffiHelper.callFunction("access", ValueLayout.JAVA_INT, List.of(ValueLayout.ADDRESS, ValueLayout.JAVA_INT), List.of(fileNameMemory, 0));
+                return res == 0;
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    public String getName() {
+        String[] parts = path.split("/"); // todo this is jank
+        return parts[parts.length - 1];
+    }
 
     public File[] listFiles() { // todo proper arena shit
         List<File> files = new ArrayList<>();
@@ -37,9 +64,25 @@ public record File(String path) {
         }
     }
 
-    @NotNull
     @Override
     public String toString() {
         return "File[" + path + "]";
+    }
+
+    public String path() {
+        return path;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) return true;
+        if (obj == null || obj.getClass() != this.getClass()) return false;
+        var that = (File) obj;
+        return Objects.equals(this.path, that.path);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(path);
     }
 }
