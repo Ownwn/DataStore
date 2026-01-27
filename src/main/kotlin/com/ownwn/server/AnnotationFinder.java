@@ -2,18 +2,13 @@ package com.ownwn.server;
 
 import com.ownwn.server.intercept.Intercept;
 import com.ownwn.server.intercept.Interceptor;
-import com.ownwn.server.java.lang.replacement.ArrayList;
-import com.ownwn.server.java.lang.replacement.HashMap;
-import com.ownwn.server.java.lang.replacement.List;
-import com.ownwn.server.java.lang.replacement.Map;
+import com.ownwn.server.java.lang.replacement.*;
 
-import com.ownwn.server.java.lang.replacement.File;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.net.JarURLConnection;
 import java.net.URL;
-import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -101,9 +96,9 @@ public class AnnotationFinder {
     }
 
     private static <T> List<Method> getAnnotatedMethods(Class<T> clazz, Class<? extends Annotation> annotationClass) {
-        return new ArrayList<>(Arrays.stream(clazz.getDeclaredMethods())
+        return Arrays.stream(clazz.getDeclaredMethods())
                 .filter(m -> m.isAnnotationPresent(annotationClass))
-                .toList()); // todo remove constructor wrap
+                .toList(); // todo remove constructor wrap
     }
 
     @SuppressWarnings("unchecked")

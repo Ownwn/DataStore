@@ -9,7 +9,7 @@ import java.util.stream.Collector;
 
 public class Collectors {
 
-    public static Collector<CharSequence, StringBuilder, String> joining(String s) {
+    public static Collector<CharSequence, StringBuilder, String> joining(String del, String prefix, String suffix) {
         return new Collector<>() {
             @Override
             public Supplier<StringBuilder> supplier() {
@@ -19,7 +19,7 @@ public class Collectors {
             @Override
             public BiConsumer<StringBuilder, CharSequence> accumulator() {
                 return (sb, cs) -> {
-                    if (!sb.isEmpty()) sb.append(s);
+                    if (!sb.isEmpty()) sb.append(del);
                     sb.append(cs);
                 };
             }
@@ -29,13 +29,13 @@ public class Collectors {
                 return (o1, o2) -> {
                     if (o1.isEmpty()) return o2;
                     if (o2.isEmpty()) return o1;
-                    return o1.append(s).append(o2);
+                    return o1.append(del).append(o2);
                 };
             }
 
             @Override
             public Function<StringBuilder, String> finisher() {
-                return StringBuilder::toString;
+                return sb -> prefix + sb.toString() + suffix;
             }
 
             @Override
@@ -44,4 +44,8 @@ public class Collectors {
             }
         };
     }
+    public static Collector<CharSequence, StringBuilder, String> joining(String del) {
+        return joining(del, "", "");
+    }
+
 }

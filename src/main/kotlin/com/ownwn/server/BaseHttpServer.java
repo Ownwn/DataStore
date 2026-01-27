@@ -1,9 +1,6 @@
 package com.ownwn.server;
 
-import com.ownwn.server.java.lang.replacement.ArrayList;
-import com.ownwn.server.java.lang.replacement.HashMap;
-import com.ownwn.server.java.lang.replacement.List;
-import com.ownwn.server.java.lang.replacement.Map;
+import com.ownwn.server.java.lang.replacement.*;
 import com.ownwn.server.request.GetRequest;
 import com.ownwn.server.request.PostRequest;
 import com.ownwn.server.request.Request;
@@ -14,7 +11,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.foreign.*;
 import java.net.SocketTimeoutException;
-import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 

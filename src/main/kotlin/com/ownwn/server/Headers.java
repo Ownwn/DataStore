@@ -3,7 +3,6 @@ package com.ownwn.server;
 
 import com.ownwn.server.java.lang.replacement.*;
 
-import java.util.Arrays;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

@@ -19,6 +19,12 @@ public class Arrays {
         return res;
     }
 
+    public static <T> Stream<T> stream(T[] arr) { // todo crap
+        List<T> l = new ArrayList<>(arr.length);
+        l.addAll(java.util.Arrays.asList(arr));
+        return l.stream();
+    }
+
     public static String toString(Object[] arr) {
         StringBuilder res = new StringBuilder();
         res.append('[');

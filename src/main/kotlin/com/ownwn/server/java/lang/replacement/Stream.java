@@ -12,6 +12,8 @@ import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 
+import java.util.function.Consumer;
+
 public class Stream<T> implements java.util.stream.Stream<T> {
     List<T> underlying;
 

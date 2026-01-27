@@ -7,10 +7,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
-import com.ownwn.server.java.lang.replacement.ArrayList;
-
-import java.util.Map;
-import java.util.stream.Collectors;
+import com.ownwn.server.java.lang.replacement.*;
 
 public class WholeBodyResponse extends Response {
     private final byte[] body;

@@ -2,15 +2,12 @@ package com.ownwn.server;
 
 import com.ownwn.server.intercept.InterceptReceiver;
 import com.ownwn.server.intercept.Interceptor;
-import com.ownwn.server.java.lang.replacement.HashMap;
-import com.ownwn.server.java.lang.replacement.List;
-import com.ownwn.server.java.lang.replacement.Map;
+import com.ownwn.server.java.lang.replacement.*;
 import com.ownwn.server.request.Request;
 import com.ownwn.server.response.Response;
 import com.ownwn.server.response.TemplateResponse;
 
 import java.io.IOException;
-import com.ownwn.server.java.lang.replacement.ArrayList;
 
 public class Server {
     private final Map<String, RequestHandler> handleMethods = new HashMap<>();
