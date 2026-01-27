@@ -1,11 +1,11 @@
 package com.ownwn.server.java.lang.replacement;
 
+import com.ownwn.server.java.lang.replacement.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.ListIterator;
-import java.util.function.Function;
 
 @SuppressWarnings("unchecked")
 public class ArrayList<T> implements List<T> {

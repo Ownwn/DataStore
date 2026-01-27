@@ -1,5 +1,7 @@
 package com.ownwn.server.java.lang.replacement;
 
+import com.ownwn.server.java.lang.replacement.stream.Stream;
+
 public class Arrays {
 
     public static Object[] copyOf(Object[] o, int newSize) {

@@ -1,13 +1,11 @@
 package com.ownwn.server.response;
 
-import com.ownwn.server.java.lang.replacement.Optional;
+import com.ownwn.server.java.lang.replacement.*;
+import com.ownwn.server.java.lang.replacement.stream.ByteArrayInputStream;
+import com.ownwn.server.java.lang.replacement.stream.InputStream;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 
 public class TemplateResponse extends Response {

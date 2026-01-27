@@ -1,12 +1,11 @@
 package com.ownwn.server.sockets;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 import java.net.InetAddress;
-import com.ownwn.server.java.lang.replacement.List;
+import com.ownwn.server.java.lang.replacement.*;
+import com.ownwn.server.java.lang.replacement.stream.InputStream;
+import com.ownwn.server.java.lang.replacement.stream.OutputStream;
 
 import static java.lang.foreign.ValueLayout.ADDRESS;
 import static java.lang.foreign.ValueLayout.JAVA_BYTE;
@@ -37,6 +36,15 @@ public abstract class Client {
                             throw new RuntimeException(e);
                         }
                     }
+
+                    @Override
+                    public void close() {
+                        try {
+                            FFIHelper.of().callIntFunction("close", JAVA_INT, List.of(c));
+                        } catch (Throwable e) {
+                            throw new RuntimeException("Cannot close inputstream" + e);
+                        }
+                    }
                 };
             }
 
@@ -44,23 +52,22 @@ public abstract class Client {
             public OutputStream getOutputStream(Arena arena) {
                 return new OutputStream() {
                     @Override
-                    public void write(int b) throws IOException {
+                    public void write(int b) {
                         MemorySegment resByte = arena.allocateFrom(JAVA_BYTE, (byte) b); // todo optimize chunk size
                         try {
                             FFIHelper.of().callFunction("write", JAVA_LONG, List.of(JAVA_INT, ADDRESS, JAVA_LONG), List.of(c, resByte, 1));
                         } catch (Throwable e) {
-                            throw new IOException(e);
+                            throw new RuntimeException(e);
                         }
 
                     }
 
                     @Override
-                    public void close() throws IOException {
-                        super.close(); // todo close client when done! important!
+                    public void close() {
                         try {
                             FFIHelper.of().callIntFunction("close", JAVA_INT, List.of(c));
                         } catch (Throwable e) {
-                            throw new IOException(e);
+                            throw new RuntimeException("Cannot close outputstream" + e);
                         }
                     }
                 };

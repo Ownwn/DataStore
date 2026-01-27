@@ -6,11 +6,10 @@ import com.ownwn.server.FormByteParser;
 import com.ownwn.server.Headers;
 import com.ownwn.server.HttpMethod;
 
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.InetAddress;
-import com.ownwn.server.java.lang.replacement.List;
-import com.ownwn.server.java.lang.replacement.Map;
+import com.ownwn.server.java.lang.replacement.*;
+import com.ownwn.server.java.lang.replacement.stream.InputStream;
+import com.ownwn.server.java.lang.replacement.stream.OutputStream;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -23,7 +22,7 @@ public class PostRequest extends Request {
 
 
     public PostRequest(InetAddress remoteAddress, InputStream requestBody, Headers requestHeaders,
-                      OutputStream responseBody, String path, Map<String, String> cookies, Map<String, String> queryParameters) {
+                       OutputStream responseBody, String path, Map<String, String> cookies, Map<String, String> queryParameters) {
 
         super(remoteAddress, requestBody, requestHeaders, responseBody, path, cookies, queryParameters);
 

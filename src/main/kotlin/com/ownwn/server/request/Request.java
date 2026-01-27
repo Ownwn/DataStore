@@ -3,12 +3,11 @@ package com.ownwn.server.request;
 
 import com.ownwn.server.Headers;
 import com.ownwn.server.HttpMethod;
-import com.ownwn.server.java.lang.replacement.HashMap;
-import com.ownwn.server.java.lang.replacement.Map;
+import com.ownwn.server.java.lang.replacement.*;
+import com.ownwn.server.java.lang.replacement.stream.InputStream;
+import com.ownwn.server.java.lang.replacement.stream.OutputStream;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
 

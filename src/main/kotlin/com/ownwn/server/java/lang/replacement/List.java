@@ -1,6 +1,6 @@
 package com.ownwn.server.java.lang.replacement;
 
-import org.jetbrains.annotations.NotNull;
+import com.ownwn.server.java.lang.replacement.stream.Stream;
 
 public interface List<T> extends Iterable<T>, java.util.List<T> {
 
@@ -56,6 +56,6 @@ public interface List<T> extends Iterable<T>, java.util.List<T> {
     @Override
     default Stream<T> stream() {
         var self = this;
-        return new Stream<>() {{underlying = self;}};
+        return new Stream<T>() {{underlying = self;}};
     }
 }

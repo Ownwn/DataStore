@@ -1,5 +1,9 @@
-package com.ownwn.server.java.lang.replacement;
+package com.ownwn.server.java.lang.replacement.stream;
 
+import com.ownwn.server.java.lang.replacement.ArrayList;
+import com.ownwn.server.java.lang.replacement.HashSet;
+import com.ownwn.server.java.lang.replacement.List;
+import com.ownwn.server.java.lang.replacement.Set;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Comparator;
@@ -15,18 +19,18 @@ import java.util.stream.LongStream;
 import java.util.function.Consumer;
 
 public class Stream<T> implements java.util.stream.Stream<T> {
-    List<T> underlying;
+    protected List<T> underlying;
 
     static <T> Stream<T> empty() {
         return new Stream<>();
     }
 
 
-    Stream(List<T> col) {
+    protected Stream(List<T> col) {
         underlying = new ArrayList<>(col);
     }
 
-    Stream() {
+    protected Stream() {
         underlying = new ArrayList<>();
     }
 
