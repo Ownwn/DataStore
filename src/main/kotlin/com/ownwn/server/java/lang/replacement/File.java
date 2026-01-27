@@ -19,7 +19,7 @@ public record File(String path) {
             try {
                 DIR_p = (MemorySegment) ffiHelper.callFunction("opendir", ValueLayout.ADDRESS, List.of(ValueLayout.ADDRESS), List.of(dirName));
                 if (DIR_p.equals(MemorySegment.NULL)) {
-                    throw new Error("can't list files");
+                    return new File[0];
                 }
 
                 MemorySegment dirent_p;

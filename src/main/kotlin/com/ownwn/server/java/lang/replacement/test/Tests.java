@@ -16,6 +16,11 @@ public class Tests {
         File f = new File("/home/owen/files");
         var res = f.listFiles();
         System.out.println(Arrays.toString(res));
+
+
+        File sec = new File("/home/owen/files/first");
+        var res2 = sec.listFiles();
+        System.out.println(Arrays.toString(res2));
     }
 
     static void streamTest() {
