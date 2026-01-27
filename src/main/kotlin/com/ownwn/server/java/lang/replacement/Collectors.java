@@ -11,7 +11,6 @@ public class Collectors {
 
     public static Collector<CharSequence, StringBuilder, String> joining(String s) {
         return new Collector<>() {
-            private boolean added = false;
             @Override
             public Supplier<StringBuilder> supplier() {
                 return StringBuilder::new;
@@ -19,17 +18,24 @@ public class Collectors {
 
             @Override
             public BiConsumer<StringBuilder, CharSequence> accumulator() {
-                return (sb, cs) -> {added = true; sb.append(s).append(cs);};
+                return (sb, cs) -> {
+                    if (!sb.isEmpty()) sb.append(s);
+                    sb.append(cs);
+                };
             }
 
             @Override
             public BinaryOperator<StringBuilder> combiner() {
-                return (o1, o2) -> new StringBuilder(o1).append(s).append(o2);
+                return (o1, o2) -> {
+                    if (o1.isEmpty()) return o2;
+                    if (o2.isEmpty()) return o1;
+                    return o1.append(s).append(o2);
+                };
             }
 
             @Override
             public Function<StringBuilder, String> finisher() {
-                return sb -> {if (added) {sb.delete(sb.length()-1-s.length(), sb.length()); } return sb.toString();};
+                return StringBuilder::toString;
             }
 
             @Override

@@ -17,16 +17,18 @@ public class ArrayList<T> implements List<T> {
     }
 
     public ArrayList(int initialCapacity) {
-        array = new Object[initialCapacity];
+        array = new Object[initialCapacity <= 0 ? 32 : initialCapacity];
     }
 
     /** shallow copy constructor */
     public ArrayList(List<T> list) {
+        this();
         addAll(list);
     }
 
     /** shallow copy constructor */
     public ArrayList(Collection<T> list) {
+        this();
         addAll(list);
     }
 
@@ -50,7 +52,7 @@ public class ArrayList<T> implements List<T> {
 
     private void ensureCapacity() {
         if (currentSize >= array.length-1) {
-            array = Arrays.copyOf(array, currentSize*2);
+            array = Arrays.copyOf(array, Math.max(currentSize*2, 1));
         }
     }
 

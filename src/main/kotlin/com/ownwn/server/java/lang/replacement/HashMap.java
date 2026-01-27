@@ -25,7 +25,7 @@ public class HashMap<K, V> implements Map<K, V> { // todo store size field for f
     }
 
     private int hash(Object o) {
-        return o == null ? nullHash : o.hashCode();
+        return o == null ? nullHash : Math.abs(o.hashCode());
     }
 
     @Override

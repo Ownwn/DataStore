@@ -54,6 +54,8 @@ public final class File {
                 while (!(dirent_p = (MemorySegment) ffiHelper.callFunction("readdir", ValueLayout.ADDRESS, List.of(ValueLayout.ADDRESS), List.of(DIR_p))).equals(MemorySegment.NULL)) {
                     MemorySegment dirent = dirent_p.reinterpret(280);
                     String fileName = dirent.getString(19);
+                    if (fileName.equals(".") || fileName.equals("..")) continue;
+
                     files.add(new File(fileName));
                 }
             } catch (Throwable e) {
