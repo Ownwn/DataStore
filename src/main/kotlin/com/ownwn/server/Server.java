@@ -20,6 +20,10 @@ public class Server {
     }
 
     public static void create(String basePath, short port) {
+        if (System.getProperty("os.name").contains("Windows")) {
+            throw new RuntimeException("Windows is not supported. (glibc required)");
+        }
+
         try {
             String packageName = StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE)
                     .getCallerClass()

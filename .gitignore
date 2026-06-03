@@ -16,7 +16,6 @@ target/
 ### IntelliJ IDEA ###
 .idea
 *.iws
-*.iml
 *.ipr
 
 ### NetBeans ###
@@ -65,3 +64,9 @@ data/
 out/
 app.jar
 handle.java
+!Baseless.iml
+!.idea/
+.idea/*
+!.idea/libraries/
+.idea/libraries/*
+!.idea/libraries/KotlinJavaRuntime.xml
