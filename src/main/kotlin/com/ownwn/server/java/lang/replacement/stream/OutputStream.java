@@ -7,9 +7,8 @@ public interface OutputStream {
     void close();
 
     default void write(byte[] bytes) {
-        for (byte b : bytes) {
-            write(b);
-        }
+        write(bytes, bytes.length);
     }
 
+    void write(byte[] bytes, int len);
 }

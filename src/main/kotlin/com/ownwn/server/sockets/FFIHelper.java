@@ -9,18 +9,18 @@ import com.ownwn.server.java.lang.replacement.List;
 import com.ownwn.server.java.lang.replacement.Map;
 import com.ownwn.server.java.lang.replacement.stream.IntStream;
 
-import static java.lang.foreign.ValueLayout.JAVA_INT;
-import static java.lang.foreign.ValueLayout.JAVA_SHORT;
+import static java.lang.foreign.ValueLayout.*;
 
 public class FFIHelper {
-    private static Linker linker;
-    private static SymbolLookup stdLib;
-    private static MethodHandle sendFunctionHandle;
+    private static final Linker linker;
+    private static final SymbolLookup stdLib;
+    private static final MethodHandle WRITE_HANDLE;
     private static final Map<String, MethodHandle> methodCache = new HashMap<>();
 
     static {
         linker = Linker.nativeLinker();
         stdLib = linker.defaultLookup();
+        WRITE_HANDLE = loadMethodHandle("write", JAVA_LONG, List.of(JAVA_INT, ADDRESS, JAVA_LONG));
     }
 
     /** You must close the arena yourself! */
@@ -31,11 +31,16 @@ public class FFIHelper {
         return new FFIHelper();
     }
 
-//    public long sendNative(int fd, MemorySegment buf, int length) {
-//
-//    }
+    /** should run a lot faster than {@link #callFunction} if  the jvm is kind :) */
+    public static long writeNative(int fd, MemorySegment buf, long length) {
+        try {
+            return (long) WRITE_HANDLE.invokeExact(fd, buf, length);
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-    private <T extends MemoryLayout> MethodHandle loadMethodHandle(String name, T returnType, List<T> types) {
+    private static <T extends MemoryLayout> MethodHandle loadMethodHandle(String name, T returnType, List<T> types) {
         return methodCache.computeIfAbsent(name, _ -> {
             MemorySegment function_addr = stdLib.find(name).orElseThrow(() -> new RuntimeException("Can't find function of name " + name));
             FunctionDescriptor fd = FunctionDescriptor.of(returnType, types.toArray(new MemoryLayout[types.size()]));

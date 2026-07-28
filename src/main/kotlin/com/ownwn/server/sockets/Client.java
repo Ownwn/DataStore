@@ -90,11 +90,10 @@ public abstract class Client {
                     public void write(int b) {
                         MemorySegment resByte = arena.allocateFrom(JAVA_BYTE, (byte) b); // todo optimize chunk size
                         try {
-                            FFIHelper.of().callFunction("write", JAVA_LONG, List.of(JAVA_INT, ADDRESS, JAVA_LONG), List.of(c, resByte, 1));
+                            FFIHelper.writeNative(c, resByte, 1L);
                         } catch (Throwable e) {
                             throw new RuntimeException(e);
                         }
-
                     }
 
                     @Override
@@ -103,6 +102,29 @@ public abstract class Client {
                             FFIHelper.of().callIntFunction("close", JAVA_INT, List.of(c));
                         } catch (Throwable e) {
                             throw new RuntimeException("Cannot close outputstream" + e);
+                        }
+                    }
+
+                    @Override
+                    public void write(byte[] bytes, int len) {
+                        MemorySegment resByte = MemorySegment.ofArray(bytes);
+                        MemorySegment nativeBuf = arena.allocate(len);
+                        MemorySegment srcSlice = resByte.asSlice(0, len);
+                        nativeBuf.copyFrom(srcSlice);
+                        try {
+                            long written = 0;
+                            while (written < len) {
+                                MemorySegment writeSlice = nativeBuf.asSlice(written);
+                                long bytesWritten  = FFIHelper.writeNative(c, writeSlice, len - written);
+
+                                if (bytesWritten < 0) {
+                                    throw new RuntimeException("nasty stuff byte note written in write byte");
+                                }
+                                written += bytesWritten;
+                            }
+
+                        } catch (Throwable e) {
+                            throw new RuntimeException(e);
                         }
                     }
                 };

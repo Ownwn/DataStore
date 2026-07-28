@@ -11,7 +11,7 @@ public interface InputStream {
     default int readNBytes(byte[] buf, int offset, int length) throws IOException {
         int read;
         int i = 0;
-        while ((read = read()) != -1 && i < length) {
+        while (i < length && (read = read()) != -1) { // need to keep the length on the left short circuit eval
             buf[offset + i++] = (byte) (read & 0xff);
         }
         return i;
@@ -21,11 +21,12 @@ public interface InputStream {
     default long transferTo(OutputStream outputStream) throws IOException {
         long transferred = 0;
 
-        int read;
+        byte[] buf = new byte[1024];
 
-        while ((read = read()) != -1) {
-            outputStream.write(read);
-            transferred++;
+        int read;
+        while ((read = readNBytes(buf, 0, 1024)) > 0) { // todo could fail transfer if it reads 0 but is not done?
+            outputStream.write(buf, read);
+            transferred+= read;
         }
 
         return transferred;
