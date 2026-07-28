@@ -300,6 +300,7 @@ function GreetingForm({fetchItems, setStatus, encryptionKey}) {
                 body.append("file", blob, fileNameTrimmed)
             }
         }
+        setStatus("Uploading...")
 
 
         const res = await fetch("api/submit", {
