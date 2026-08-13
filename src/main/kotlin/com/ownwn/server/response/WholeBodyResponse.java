@@ -14,9 +14,8 @@ public class WholeBodyResponse extends Response {
 
 
     private WholeBodyResponse(int status, byte[] body, Headers headers) {
-        this.status = status;
+        super(headers, status);
         this.body = body;
-        this.headers = headers;
     }
 
     @Override

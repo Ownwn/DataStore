@@ -11,13 +11,6 @@ public class Headers {
     private final Map<String, String> internalHeaders;
     private static final Pattern headerRegex = Pattern.compile("^([^:]+):(.+)$");
 
-    public Headers(com.sun.net.httpserver.Headers headers) {
-        this();
-        for (var header : headers.entrySet()) {
-            internalHeaders.put(header.getKey(), header.getValue().getFirst());
-        }
-    }
-
     public static Headers fromRawList(List<String> rawHeaders) {
         Headers headers = new Headers();
         for (String header : rawHeaders) {
@@ -30,6 +23,17 @@ public class Headers {
             headers.put(m.group(1), m.group(2));
         }
         return headers;
+    }
+
+    public static Headers of(String... headersPair) {
+        if (headersPair.length % 2 != 0) {
+            throw new IllegalArgumentException("bad headers len");
+        }
+        Headers h = new Headers();
+        for (int i = 0; i < headersPair.length; i+= 2) {
+            h.put(headersPair[i], headersPair[i+1]);
+        }
+        return h;
     }
 
     public Map<String, String> getAndRemoveCookies() {

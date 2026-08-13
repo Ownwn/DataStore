@@ -9,14 +9,17 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 public abstract class Response {
-    protected Headers headers = new Headers() {{
-        put("Content-Type", "text/html");
-    }};
-    protected int status;
+    private Headers headers;
+    private int status;
 
     public abstract int bodyLength();
     public abstract InputStream body() throws IOException;
 
+    protected Response(Headers headers, int status) {
+        this.headers = headers;
+        this.status = status;
+        this.headers.put("Connection", "close");
+    }
 
     public Headers headers() {
         return headers;

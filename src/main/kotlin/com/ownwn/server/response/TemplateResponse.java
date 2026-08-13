@@ -1,5 +1,6 @@
 package com.ownwn.server.response;
 
+import com.ownwn.server.Headers;
 import com.ownwn.server.java.lang.replacement.*;
 import com.ownwn.server.java.lang.replacement.stream.ByteArrayInputStream;
 import com.ownwn.server.java.lang.replacement.stream.InputStream;
@@ -14,8 +15,8 @@ public class TemplateResponse extends Response {
     private final String url;
 
     TemplateResponse(int status, String url) {
+        super(Headers.of("Content-Type", "text/html"), status);
         this.url = url;
-        this.status = status;
     }
 
     @Override
@@ -29,7 +30,6 @@ public class TemplateResponse extends Response {
         if (file.isPresent()) {
             return Files.newInputStream(file.get().toPath());
         }
-        status = 404;
 
 
         Optional<File> errorNotFoundTemplate = getTemplateFile(notFoundUrl);
@@ -43,7 +43,6 @@ public class TemplateResponse extends Response {
 
     Optional<File> getTemplateFile(String url) {
         File[] templates = getTemplatesFolder().listFiles();
-        //noinspection DataFlowIssue
         for (File template : templates) {
             if (template.isDirectory() || !template.getName().endsWith(".html")) {
                 continue;
