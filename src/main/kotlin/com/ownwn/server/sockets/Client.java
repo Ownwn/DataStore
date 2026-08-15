@@ -118,7 +118,8 @@ public abstract class Client {
                                 long bytesWritten  = FFIHelper.writeNative(c, writeSlice, len - written);
 
                                 if (bytesWritten < 0) {
-                                    throw new RuntimeException("nasty stuff byte note written in write byte");
+                                    close();
+                                    throw new RuntimeException("Failed to write bytes to socket. connection may have been prematurely closed?");
                                 }
                                 written += bytesWritten;
                             }
